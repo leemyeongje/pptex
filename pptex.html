@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PpTex — 텍스트로 만드는 프레젠테이션</title>
+<style>
+/* ---------- Freesentation ---------- */
+@font-face{font-family:'Freesentation';font-weight:400;font-style:normal;src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2404@1.0/Freesentation-4Regular.woff2') format('woff2');font-display:swap}
+@font-face{font-family:'Freesentation';font-weight:500;font-style:normal;src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2404@1.0/Freesentation-5Medium.woff2') format('woff2');font-display:swap}
+@font-face{font-family:'Freesentation';font-weight:600;font-style:normal;src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2404@1.0/Freesentation-6SemiBold.woff2') format('woff2');font-display:swap}
+@font-face{font-family:'Freesentation';font-weight:700;font-style:normal;src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2404@1.0/Freesentation-7Bold.woff2') format('woff2');font-display:swap}
+@font-face{font-family:'Freesentation';font-weight:800;font-style:normal;src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2404@1.0/Freesentation-8ExtraBold.woff2') format('woff2');font-display:swap}
+@font-face{font-family:'Freesentation';font-weight:900;font-style:normal;src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2404@1.0/Freesentation-9Black.woff2') format('woff2');font-display:swap}
+
+:root{
+  --bg:#101010; --panel:#171717; --panel2:#1d1d1d; --line:#2a2a2a;
+  --tx:#e8e8e8; --tx2:#8f8f8f; --tx3:#5c5c5c; --accent:#6ea8ff;
+  --font:'Freesentation','Pretendard',-apple-system,'Apple SD Gothic Neo','Segoe UI',sans-serif;
+  --mono:'SF Mono',ui-monospace,'Cascadia Code','Consolas','Nanum Gothic Coding',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidden}
+
+/* ---------- App chrome ---------- */
+.app{display:flex;flex-direction:column;height:100vh}
+.topbar{display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid var(--line);background:var(--panel);flex:none}
+.logo{font-weight:800;font-size:17px;letter-spacing:-.01em;margin-right:6px}
+.logo em{font-style:normal;color:var(--tx2);font-weight:600}
+.fileinfo{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--tx2);min-width:0}
+.fileinfo .name{font-weight:600;color:#c9c9c9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+.fileinfo .dot{width:6px;height:6px;border-radius:99px;background:#4a7a4a;flex:none}
+.fileinfo.dirty .dot{background:#c08a2e}
+.fileinfo.nofile .dot{background:#555}
+.fileinfo .state{color:var(--tx3);white-space:nowrap}
+.spacer{flex:1}
+.btn{font-family:var(--font);font-size:13px;font-weight:600;color:var(--tx);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;transition:background .12s;white-space:nowrap}
+.btn:hover{background:#262626}
+.btn:focus-visible{outline:2px solid #777;outline-offset:1px}
+.btn.primary{background:#f2f2f2;color:#111;border-color:#f2f2f2}
+.btn.primary:hover{background:#fff}
+.btn.toggle.on{background:#233348;border-color:#33507a;color:#cfe0ff}
+
+.imgstrip{display:flex;align-items:center;gap:8px;padding:7px 18px;border-bottom:1px solid var(--line);background:var(--panel);flex:none;overflow-x:auto;min-height:38px}
+.imgstrip .hint{font-size:12px;color:var(--tx3);white-space:nowrap}
+.chip{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:500;background:var(--panel2);border:1px solid var(--line);border-radius:99px;padding:4px 6px 4px 11px;cursor:pointer;white-space:nowrap;color:var(--tx)}
+.chip:hover{background:#262626}
+.chip img{width:20px;height:20px;object-fit:cover;border-radius:99px}
+.chip .x{color:var(--tx3);font-weight:700;padding:0 4px;border-radius:99px}
+.chip .x:hover{color:#fff}
+
+.main{display:flex;flex:1;min-height:0}
+.pane-editor{width:44%;min-width:340px;display:flex;flex-direction:column;border-right:1px solid var(--line)}
+.pane-editor .phead, .pane-preview .phead{flex:none;display:flex;align-items:center;gap:10px;font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--tx3);padding:9px 18px;border-bottom:1px solid var(--line);text-transform:uppercase}
+.phead .now{color:var(--accent);letter-spacing:.02em}
+#editor{flex:1;width:100%;resize:none;border:0;outline:none;background:var(--bg);color:#d6d6d6;font-family:var(--mono);font-size:13.5px;line-height:1.75;padding:18px 20px;white-space:pre-wrap;word-wrap:break-word;overflow:auto;tab-size:4}
+#editor::selection{background:#3a3a3a}
+.pane-preview{flex:1;display:flex;flex-direction:column;min-width:0;background:#141414}
+#preview{flex:1;overflow-y:auto;padding:26px 30px 60vh;position:relative}
+.pv-item{margin:0 auto 8px;max-width:1180px;cursor:pointer}
+.pv-label{font-size:11.5px;color:var(--tx3);margin:0 2px 6px;text-align:right;transition:color .15s}
+.pv-frame{position:relative;width:100%;border-radius:6px;overflow:hidden;box-shadow:0 10px 34px rgba(0,0,0,.5);background:#000;outline:0 solid transparent;transition:outline-color .18s,outline-width .18s}
+.pv-frame .slide{position:absolute;top:0;left:0;transform-origin:top left}
+.pv-item + .pv-item{margin-top:20px}
+.pv-item.active .pv-frame{outline:2px solid var(--accent);outline-offset:3px}
+.pv-item.active .pv-label{color:var(--accent)}
+.empty-note{color:var(--tx3);font-size:14px;text-align:center;margin-top:60px;line-height:1.8;white-space:pre-line}
+
+/* ---------- Slides ---------- */
+.slide{
+  width:1280px;height:720px;background:#000;color:#fff;font-family:var(--font);
+  overflow:hidden;position:relative;display:flex;flex-direction:column;
+  padding:44px 56px 52px;
+  --cap:17px; --capgap:8px; --tit:42px; --sub:42px; --body:26px; --figc:24px;
+  --rowgap:34px; --radius:26px;
+}
+.slide.s-cover{padding:60px 64px;--cap:20px;--tit:76px;--sub:44px;--body:29px}
+.slide.s-statement{padding:64px;--tit:58px;--sub:34px}
+
+/* background image */
+.bgimg{position:absolute;inset:0;z-index:0}
+.bgimg img{width:100%;height:100%;object-fit:cover}
+.slide.hasbg .bgimg::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.55) 0%,rgba(0,0,0,.18) 45%,rgba(0,0,0,.5) 100%)}
+.slide.hasbg > .body{position:relative;z-index:2}
+
+/* layout tree: 줄바꿈 = 가로(row), 빈 줄 = 세로(col) — 모든 깊이에서 동일 */
+.body,.col{display:flex;flex-direction:column;min-width:0;min-height:0}
+.body{flex:1;gap:var(--rowgap)}
+.col{gap:var(--rowgap)}
+.row{display:flex;flex-direction:row;gap:32px;min-width:0;min-height:0;align-items:flex-start}
+.row.hastitle{gap:54px}
+.row.media{align-items:stretch}
+.grow{flex:1 1 0;min-width:0;min-height:0}
+.nogrow{flex:0 0 auto;min-width:0}
+.cell{display:flex;flex-direction:column;min-width:0}
+
+/* ---- title block ----
+   캡션 자리는 캡션이 없어도 항상 확보한다 → 제목의 위치·크기가 언제나 동일 */
+.row.multi > .cell.tblock{flex:0 0 38%}
+.s-cover .row.multi > .cell.tblock{flex:0 0 54%}
+.row.solo > .tblock{max-width:76%}
+.s-cover .row.solo > .tblock{max-width:66%}
+.tblock .caption{font-size:var(--cap);font-weight:600;color:#8f8f8f;letter-spacing:.04em;
+                 line-height:1.35;height:calc(var(--cap) * 1.35);margin-bottom:var(--capgap)}
+.tblock .caption.empty{visibility:hidden}
+.tblock .title{font-size:var(--tit);font-weight:800;line-height:1.13;letter-spacing:-.012em}
+.tblock .subtitle{font-size:var(--sub);font-weight:700;line-height:1.16;color:#8f8f8f;margin-top:2px}
+.slide.hasbg .tblock .caption,.slide.hasbg .tblock .subtitle{color:#d8d8d8}
+
+/* 제목만 있는 슬라이드: 제목 자체가 슬라이드의 정확한 가운데.
+   캡션·부제는 흐름에서 빼서 제목 위치에 영향을 주지 않는다. */
+.s-statement .body{justify-content:center}
+.s-statement .row{justify-content:center}
+.s-statement .tblock{position:relative;text-align:center;flex:0 1 auto;max-width:88%;overflow:visible}
+.s-statement .tblock .caption{position:absolute;left:0;right:0;bottom:100%;height:auto;margin:0 0 var(--capgap)}
+.s-statement .tblock .subtitle{position:absolute;left:0;right:0;top:100%;margin:14px 0 0}
+
+/* body text */
+.cell.text{font-size:var(--body);font-weight:600;line-height:1.5;letter-spacing:-.004em}
+
+/* numbered list */
+.cell.list{justify-content:flex-start}
+.cell.list .item{display:flex;gap:22px;align-items:baseline;font-weight:800;letter-spacing:-.01em;line-height:1.42}
+.cell.list .no{color:#8f8f8f;font-weight:800;min-width:1.7em;flex:none}
+
+/* ---- image: squircle 로 크롭. 더블클릭하면 크롭 편집 ---- */
+.cell.img{gap:14px}
+.imgbox{flex:1 1 auto;min-height:0;position:relative;overflow:hidden;
+        border-radius:var(--radius);corner-shape:squircle;background:#151515}
+.imgbox img{width:100%;height:100%;object-fit:cover;
+            object-position:var(--ox,50%) var(--oy,50%);
+            transform:scale(var(--z,1));transform-origin:var(--ox,50%) var(--oy,50%)}
+.cell.img .figcap{flex:none;text-align:center;font-size:var(--figc);font-weight:600}
+
+/* 빈 자리 / 아직 없는 이미지 */
+.ph{width:100%;height:100%;min-height:90px;border:1.5px dashed #4a4a4a;border-radius:var(--radius);
+    corner-shape:squircle;background:#181818;color:#777;display:flex;flex-direction:column;gap:6px;
+    align-items:center;justify-content:center;font-size:17px;font-weight:600;text-align:center;padding:12px}
+.ph .sub{font-size:14px;font-weight:500;color:#5a5a5a}
+
+/* 이미지만 있는 슬라이드 -> 여백 없이 꽉 */
+.slide.bleed{padding:0;--radius:0px}
+.slide.bleed .body,.slide.bleed .col,.slide.bleed .row{gap:0}
+
+/* footer */
+.s-footer{position:absolute;left:56px;bottom:44px;font-size:15px;font-weight:600;color:#9a9a9a;line-height:1.55;z-index:4}
+.s-cover .s-footer,.s-statement .s-footer{left:64px}
+.slide.hasbg .s-footer{color:#e0e0e0}
+
+/* 미리보기에서만 보이는 편집 어포던스 (인쇄 제외) */
+#preview .cell.img{cursor:pointer}
+#preview .cell.img .imgbox{outline:0 solid transparent;transition:outline-color .12s,outline-width .12s}
+#preview .cell.img.dropping .imgbox{outline:3px solid var(--accent);outline-offset:2px}
+#preview .cell.img.dropping .ph{border-color:var(--accent);color:#cfe0ff}
+
+/* ---------- Crop editor ---------- */
+#cropwrap{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.72);display:none;
+          align-items:center;justify-content:center;padding:40px}
+#cropwrap.open{display:flex}
+.cropbox{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;
+         width:min(720px,92vw);display:flex;flex-direction:column;gap:14px}
+.cropbox h3{font-size:14px;font-weight:700;letter-spacing:.02em}
+.cropbox h3 span{color:var(--tx3);font-weight:500;margin-left:8px}
+#cropstage{position:relative;width:100%;background:#0b0b0b;border-radius:10px;overflow:hidden;
+           display:flex;align-items:center;justify-content:center;padding:18px}
+#cropframe{position:relative;overflow:hidden;border-radius:26px;corner-shape:squircle;
+           background:#000;cursor:grab;max-width:100%;max-height:46vh}
+#cropframe.drag{cursor:grabbing}
+#cropframe img{width:100%;height:100%;object-fit:cover;user-select:none;-webkit-user-drag:none;
+               object-position:var(--ox) var(--oy);transform:scale(var(--z));transform-origin:var(--ox) var(--oy)}
+.croprow{display:flex;align-items:center;gap:12px;font-size:12.5px;color:var(--tx2)}
+.croprow input[type=range]{flex:1;accent-color:var(--accent)}
+.cropval{font-family:var(--mono);font-size:12px;color:#c9c9c9;white-space:nowrap}
+.cropbtns{display:flex;gap:8px;justify-content:flex-end}
+
+/* ---------- Help drawer ---------- */
+#help{position:fixed;top:0;right:-540px;width:520px;height:100vh;background:var(--panel);border-left:1px solid var(--line);z-index:50;transition:right .22s ease;overflow-y:auto;padding:22px 26px 60px}
+#help.open{right:0}
+#help h2{font-size:17px;font-weight:800;margin-bottom:4px}
+#help .close{position:absolute;top:16px;right:18px;background:none;border:0;color:var(--tx2);font-size:20px;cursor:pointer}
+#help h3{font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--tx2);margin:24px 0 8px;text-transform:uppercase}
+#help p{font-size:13.5px;line-height:1.7;color:#c9c9c9}
+#help code{font-family:var(--mono);font-size:12px;background:#0c0c0c;border:1px solid var(--line);border-radius:5px;padding:1.5px 6px;color:#eee}
+#help pre{font-family:var(--mono);font-size:12px;line-height:1.7;background:#0c0c0c;border:1px solid var(--line);border-radius:8px;padding:12px 14px;overflow-x:auto;color:#ddd;margin:8px 0;white-space:pre}
+#help pre b{color:#6ea8ff;font-weight:700}
+#help table{width:100%;border-collapse:collapse;font-size:12.5px;margin:6px 0}
+#help td{padding:6px 8px 6px 0;vertical-align:top;line-height:1.55;color:#c9c9c9;border-bottom:1px solid #222}
+#help td:first-child{white-space:nowrap;padding-right:14px;font-family:var(--mono)}
+#help .note{color:var(--tx3);font-size:12.5px;line-height:1.65;margin-top:6px}
+
+/* ---------- Print ---------- */
+#print-root{display:none}
+@media print{
+  @page{size:1280px 720px;margin:0}
+  body{overflow:visible;background:#fff}
+  .app,#help,#cropwrap{display:none !important}
+  #print-root{display:block}
+  #print-root .slide{page-break-after:always;break-after:page}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="topbar">
+    <div class="logo">Pp<em>Tex</em></div>
+    <div class="fileinfo nofile" id="fileinfo">
+      <span class="dot"></span><span class="name" id="fileName">제목 없음</span><span class="state" id="fileState"></span>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn" id="btnNew">새 파일</button>
+    <button class="btn" id="btnOpen">열기</button>
+    <button class="btn" id="btnSave">저장</button>
+    <button class="btn toggle on" id="btnFollow" title="커서가 있는 슬라이드를 따라 미리보기를 스크롤합니다">커서 따라가기</button>
+    <button class="btn" id="btnImgs">이미지 추가</button>
+    <button class="btn" id="btnHelp">문법</button>
+    <button class="btn primary" id="btnPdf">PDF</button>
+    <input type="file" id="fileSrc" accept=".pptex,.txt,.md,text/plain" hidden>
+    <input type="file" id="fileImgs" accept="image/*" multiple hidden>
+  </div>
+  <div class="imgstrip" id="imgstrip"></div>
+  <div class="main">
+    <div class="pane-editor">
+      <div class="phead"><span>SOURCE</span><span class="spacer"></span><span class="now" id="nowLabel"></span></div>
+      <textarea id="editor" spellcheck="false"></textarea>
+    </div>
+    <div class="pane-preview">
+      <div class="phead"><span>PREVIEW</span><span class="spacer"></span><span id="count"></span></div>
+      <div id="preview"></div>
+    </div>
+  </div>
+</div>
+
+<div id="cropwrap">
+  <div class="cropbox">
+    <h3>이미지 맞추기 <span id="cropName"></span></h3>
+    <div id="cropstage"><div id="cropframe"></div></div>
+    <div class="croprow">
+      <span>확대</span>
+      <input type="range" id="cropZoom" min="100" max="400" step="1" value="100">
+      <span class="cropval" id="cropVal"></span>
+    </div>
+    <div class="croprow"><span style="color:var(--tx3)">이미지를 끌어서 초점을 옮기고, 휠로 확대합니다.</span></div>
+    <div class="cropbtns">
+      <button class="btn" id="cropReset">초기화</button>
+      <button class="btn" id="cropCancel">취소</button>
+      <button class="btn primary" id="cropApply">적용</button>
+    </div>
+  </div>
+</div>
+
+<aside id="help">
+  <button class="close" id="btnHelpClose" aria-label="닫기">×</button>
+  <h2>PpTex 문법</h2>
+  <p>무엇이 슬라이드에 있고 요소들이 <b>공간적으로 어떤 관계</b>인지만 적습니다. 색·크기·여백 같은 스타일은 렌더러가 정합니다.</p>
+
+  <h3>1. 슬라이드</h3>
+  <pre># 첫 슬라이드
+내용
+---
+# 둘째 슬라이드
+내용</pre>
+
+  <h3>2. 글의 계층</h3>
+  <pre>^ 01
+# Fragmented Objects
+## Problem
+Books, cables, and devices exist as separate objects.</pre>
+  <table>
+    <tr><td>^</td><td>캡션 (제목 위 작은 글씨)</td></tr>
+    <tr><td>#</td><td>제목</td></tr>
+    <tr><td>##</td><td>부제</td></tr>
+    <tr><td>(없음)</td><td>본문</td></tr>
+    <tr><td>1.</td><td>번호 목록</td></tr>
+  </table>
+  <p class="note">따옴표는 문법이 아닙니다. 그냥 글자입니다.</p>
+  <pre># "Eventually everything connects."
+## Charles Eames</pre>
+  <p class="note">캡션이 있든 없든 <b>제목의 위치와 크기는 똑같습니다.</b> 번호 목록은 붙여 쓴 <code>1. 2. 3.</code> 줄이 한 덩어리로 묶입니다.</p>
+
+  <h3>3. 이미지</h3>
+  <pre>!desk-mess.jpg
+
+!p1.png | Cable Reduction
+!p2.png | Modularity
+!p3.png | Orientation Flexibility</pre>
+  <p><code>!</code> 만 쓰면 <b>빈 이미지 자리</b>가 됩니다. 미리보기의 그 자리에 이미지를 끌어다 놓으면 파일명이 소스에 채워집니다.</p>
+  <pre>!</pre>
+  <p>이미지는 자리에 꽉 차게 잘립니다. 미리보기의 이미지를 <b>더블클릭</b>하면 확대·초점을 맞출 수 있고, 그 값이 <code>~</code> 뒤에 기록됩니다.</p>
+  <pre>!christ.jpg ~ 1.4 38 22 | Heidelberg</pre>
+  <p class="note">직접 칠 일은 거의 없습니다. <code>~ 확대 초점X 초점Y</code> 순서입니다.</p>
+
+  <h3>4. 배치</h3>
+  <p>배치는 <b>줄바꿈</b>이 정합니다.</p>
+  <pre>A
+B
+C<b>            →  A → B → C   (가로)</b>
+
+A
+
+B
+
+C<b>            →  A ↓ B ↓ C   (세로)</b></pre>
+  <p class="note">글·이미지·그룹 모두 같은 규칙을 따릅니다.</p>
+
+  <h3>5. 그룹</h3>
+  <p><code>[ ]</code> 로 여러 요소를 <b>하나의 요소</b>로 묶습니다.</p>
+  <pre>A
+[
+    B
+
+    C
+]
+D<b>            →  A → [B ↓ C] → D</b></pre>
+  <p>그룹 안에서도 <b>규칙은 똑같습니다.</b></p>
+  <pre>[
+    A
+    B
+]
+
+[
+    C
+    D
+]<b>            →  [A → B]
+                     ↓
+                  [C → D]</b></pre>
+  <p class="note">들여쓰기는 문법이 아닙니다. 읽기 편하라고 쓰는 것뿐입니다.</p>
+
+  <h3>6. 글 안에서 줄바꿈</h3>
+  <p>줄 끝의 <code>\</code> 는 같은 글 요소를 다음 줄로 잇습니다. <code>@footer</code> 에서도 같습니다.</p>
+  <pre>Objects on the desk exist separately. \
+Cables become tangled, and the experience becomes fragmented.</pre>
+  <table>
+    <tr><td>줄바꿈</td><td>가로 배치</td></tr>
+    <tr><td>빈 줄</td><td>세로 배치</td></tr>
+    <tr><td>\ + 줄바꿈</td><td>글 안에서 줄바꿈</td></tr>
+  </table>
+
+  <h3>7. 슬라이드 수식어</h3>
+  <pre>@bg !pills.jpg
+@footer 20250515 Myeongje Lee \
+2026. 06. 17</pre>
+  <p><code>!</code> 의 뜻은 그대로입니다. <code>!pills.jpg</code> 는 요소로 놓이고, <code>@bg !pills.jpg</code> 는 슬라이드 배경이 됩니다.</p>
+  <p class="note">PpTex 에는 <code>@color</code> <code>@size</code> <code>@margin</code> <code>@align</code> 같은 저수준 스타일 속성이 없습니다.</p>
+
+  <h3>문법 요약</h3>
+  <table>
+    <tr><td>---</td><td>새 슬라이드</td></tr>
+    <tr><td>^</td><td>캡션</td></tr>
+    <tr><td>#</td><td>제목</td></tr>
+    <tr><td>##</td><td>부제</td></tr>
+    <tr><td>(없음)</td><td>본문</td></tr>
+    <tr><td>1.</td><td>번호 목록</td></tr>
+    <tr><td>!</td><td>이미지 (이름 없으면 빈 자리)</td></tr>
+    <tr><td>|</td><td>이미지 캡션</td></tr>
+    <tr><td>~</td><td>이미지 확대·초점</td></tr>
+    <tr><td>[ ]</td><td>그룹</td></tr>
+    <tr><td>줄바꿈</td><td>가로 배치</td></tr>
+    <tr><td>빈 줄</td><td>세로 배치</td></tr>
+    <tr><td>\ + 줄바꿈</td><td>글 안에서 줄바꿈</td></tr>
+    <tr><td>@bg</td><td>배경 이미지</td></tr>
+    <tr><td>@footer</td><td>푸터</td></tr>
+  </table>
+
+  <h3>파일</h3>
+  <p><b>열기</b>로 <code>.pptex</code> / <code>.txt</code> 파일을 열면 그때부터 <b>그 파일을 직접 고칩니다.</b> 편집하면 잠시 뒤 자동 저장되고, <code>⌘/Ctrl+S</code> 로 즉시 저장할 수 있습니다. 텍스트 파일을 창에 끌어다 놓아도 열립니다.</p>
+  <p class="note">파일을 열지 않은 상태에서는 브라우저에 임시 저장만 됩니다. 파일 직접 편집은 Chrome 계열에서 동작하며, <code>file://</code> 로 열면 막힐 수 있으니 로컬 서버로 여는 편이 안전합니다.</p>
+
+  <h3>편집</h3>
+  <table>
+    <tr><td>⌘/Ctrl + S</td><td>저장</td></tr>
+    <tr><td>⌘/Ctrl + Enter</td><td>새 슬라이드</td></tr>
+    <tr><td>미리보기 클릭</td><td>그 요소로 커서 이동</td></tr>
+    <tr><td>이미지 더블클릭</td><td>확대·초점 맞추기</td></tr>
+    <tr><td>이미지 드래그&드롭</td><td>미리보기의 그 자리에 채워 넣기</td></tr>
+  </table>
+  <p class="note">PDF 는 인쇄 창에서 <b>여백: 없음</b>, <b>배경 그래픽: 켬</b>으로 저장하세요.</p>
+</aside>
+
+<div id="print-root"></div>
+
+<script>
+/* =========================================================
+   PpTex — plain text -> slides
+   줄바꿈 = 가로, 빈 줄 = 세로, [ ] = 하나의 요소로 묶기.
+   규칙은 모든 깊이에서 동일하다.
+   ========================================================= */
+
+const DEFAULT_SRC = `@footer 20250515 Myeongje Lee \\
+2026. 06. 17
+# Reimagining Desk Accessories
+## as a Connected Ecosystem
+!cover.png
+
+---
+
+^ 01
+# Fragmented Objects
+## Problem
+Objects on the desk exist separately. \\
+Cables become tangled, and the experience becomes fragmented.
+
+!desk-mess.jpg
+
+---
+
+^ 02
+# Three Principles
+## Design Goals
+
+!p1.png | Cable Reduction
+!p2.png | Modularity
+!p3.png | Orientation Flexibility
+
+---
+
+^ 03
+# Magnetic Joint
+## Detail
+
+!module.jpg
+[
+    ## Two modules lock together
+
+    Power and signal pass through without a cable.
+
+    Contact diameter 18 mm / Maximum tension 3.2 kg
+]
+
+---
+
+@footer 20250515 Myeongje Lee \\
+2026. 06. 17
+@bg !pills.jpg
+# Prototype for Infinity
+
+---
+
+# Reference
+## Museum Walk
+
+!christ.jpg
+
+Christ as a Pharmacist \\
+Austria, 1st half of the 18th century. \\
+German Apothecary Museum, Heidelberg.
+
+---
+
+!full-render.jpg
+
+---
+
+1. The Nature of Story
+2. Award Introduction
+3. Core Concept
+4. Form Translation
+5. Design Outcome
+!trophy-closeup.png
+
+---
+
+# Next
+##
+
+!
+!
+
+---
+
+@bg !final-scene.jpg
+# "Eventually everything connects."
+## Charles Eames
+`;
+
+const $ = s => document.querySelector(s);
+const editor    = $('#editor');
+const preview   = $('#preview');
+const printRoot = $('#print-root');
+const imgstrip  = $('#imgstrip');
+const images    = new Map();   // filename -> objectURL
+
+const STORE_KEY = 'pptex.src';
+
+/* =========================================================
+   1. PARSE
+   ========================================================= */
+
+/* 소스를 슬라이드 덩어리로 나누되, 각 덩어리의 줄 범위를 기억한다
+   (커서 <-> 슬라이드 동기화와 소스 되쓰기에 쓰인다) */
+function splitChunks(src){
+  const lines = src.split('\n');
+  const chunks = [];
+  let cur = { from:0, lines:[] };
+  lines.forEach((ln, i) => {
+    if (/^\s*-{3,}\s*$/.test(ln)){
+      cur.to = i;                 // 구분선은 앞 슬라이드 범위에 포함
+      chunks.push(cur);
+      cur = { from:i+1, lines:[] };
+    } else {
+      cur.lines.push(ln);
+    }
+  });
+  cur.to = Math.max(lines.length - 1, cur.from);
+  chunks.push(cur);
+  return chunks;
+}
+
+const RE = {
+  caption : /^\^\s*(.*)$/,
+  h2      : /^##\s*(.*)$/,
+  h1      : /^#\s*(.*)$/,
+  li      : /^\d+[.)]\s+(.*)$/,
+  img     : /^!(.*)$/,
+  dir     : /^@(\w+)\s*([\s\S]*)$/
+};
+
+function parseDoc(src){
+  const slides = [];
+  splitChunks(src).forEach(c => {
+    const s = parseSlide(c.lines, c.from);
+    if (!s) return;
+    s.from = c.from; s.to = c.to;
+    s.index = slides.length;
+    slides.push(s);
+  });
+  slides.forEach(s => { s.scale = inferScale(s); });
+  return { slides };
+}
+
+/* 줄 끝의 \ 는 같은 요소를 다음 줄로 잇는다. 각 요소가 시작한 소스 줄 번호를 기억한다. */
+function joinContinuations(lines, from){
+  const out = [];
+  lines.forEach((raw, i) => {
+    const t = raw.trim();
+    const prev = out.length ? out[out.length - 1] : null;
+    if (prev && prev.cont && t){
+      prev.cont = /\\$/.test(t);
+      prev.text += '\n' + (prev.cont ? t.replace(/\\$/, '').trimEnd() : t);
+      return;
+    }
+    const cont = /\\$/.test(t);
+    out.push({ text: cont ? t.replace(/\\$/, '').trimEnd() : t,
+               blank: !t, cont, line: from + i });
+  });
+  return out;
+}
+
+/* !name ~ 확대 초점X 초점Y | 캡션 */
+function parseImg(rest){
+  const bar = rest.indexOf('|');
+  let left = bar >= 0 ? rest.slice(0, bar) : rest;
+  const caption = bar >= 0 ? rest.slice(bar + 1).trim() : '';
+  let crop = null;
+  const tl = left.indexOf('~');
+  if (tl >= 0){
+    const n = left.slice(tl + 1).trim().split(/\s+/).map(Number);
+    if (n.length === 3 && n.every(v => isFinite(v))) crop = { z:n[0], x:n[1], y:n[2] };
+    left = left.slice(0, tl);
+  }
+  return { k:'img', name:left.trim(), caption:caption || null, crop };
+}
+
+function imgLine(c){
+  let s = '!' + (c.name || '');
+  if (c.crop && (c.crop.z !== 1 || c.crop.x !== 50 || c.crop.y !== 50)){
+    s += ' ~ ' + (Math.round(c.crop.z * 100) / 100) + ' ' +
+         Math.round(c.crop.x) + ' ' + Math.round(c.crop.y);
+  }
+  if (c.caption) s += ' | ' + c.caption;
+  return s;
+}
+
+function parseCell(text){
+  let m;
+  if (m = text.match(RE.caption)) return { k:'title', caption:m[1].trim(), title:null, subtitle:null };
+  if (m = text.match(RE.h2))      return { k:'title', caption:null, title:null, subtitle:m[1].trim() };
+  if (m = text.match(RE.h1))      return { k:'title', caption:null, title:m[1].trim(), subtitle:null };
+  if (m = text.match(RE.li))      return { k:'list', items:[m[1].trim()] };
+  if (m = text.match(RE.img))     return parseImg(m[1]);
+  return { k:'text', lines:text.split('\n') };
+}
+
+/* 붙어 있는 ^ / # / ## 는 하나의 제목 덩어리로, 붙어 있는 1. 2. 3. 은 하나의 목록으로 */
+function mergeOrPush(row, c){
+  const last = row.children.length ? row.children[row.children.length - 1] : null;
+  const open = (last && !last.axis) ? last : null;
+  if (open && open.k === 'title' && c.k === 'title'){
+    if (c.caption  != null && open.caption == null && !open.title && !open.subtitle){ open.caption  = c.caption;  return; }
+    if (c.title    != null && !open.title && !open.subtitle){ open.title    = c.title;    return; }
+    if (c.subtitle != null && !open.subtitle){ open.subtitle = c.subtitle; return; }
+  }
+  if (open && open.k === 'list' && c.k === 'list'){ open.items.push(...c.items); return; }
+  row.children.push(c);
+}
+
+function parseSlide(rawLines, from){
+  const s = { root:null, bg:null, footer:null };
+
+  const items = [];
+  for (const it of joinContinuations(rawLines, from)){
+    const m = it.blank ? null : it.text.match(RE.dir);
+    if (m){
+      const name = m[1], arg = m[2].trim();
+      if (name === 'bg')     { s.bg = arg.replace(/^!\s*/, '').trim(); continue; }
+      if (name === 'footer') { s.footer = arg; continue; }
+      continue;                                   // 그 밖의 @ 는 PpTex 에 없다
+    }
+    items.push(it);
+  }
+
+  const root  = { axis:'col', children:[] };
+  const stack = [root];                           // 열려 있는 컨테이너 (root / group)
+  const curRow = () => {
+    const c = stack[stack.length - 1];
+    if (!c.open){ c.open = { axis:'row', children:[] }; c.children.push(c.open); }
+    return c.open;
+  };
+
+  for (const it of items){
+    if (it.blank){ stack[stack.length - 1].open = null; continue; }   // 빈 줄 = 세로
+    if (it.text === '['){
+      const g = { axis:'col', children:[] };
+      curRow().children.push(g);
+      stack.push(g);
+      continue;
+    }
+    if (it.text === ']'){
+      if (stack.length > 1) stack.pop().open = null;
+      continue;
+    }
+    const cell = parseCell(it.text);
+    cell.line = it.line;
+    mergeOrPush(curRow(), cell);
+  }
+
+  prune(root);
+  s.root = root;
+  if (!root.children.length && !s.bg) return null;
+  return s;
+}
+
+/* 빈 묶음은 버리고, 자식이 하나뿐인 묶음은 접는다 */
+function prune(node){
+  delete node.open;
+  node.children = node.children.filter(c => {
+    if (!c.axis) return true;
+    prune(c);
+    return c.children.length > 0;
+  });
+  for (let i = 0; i < node.children.length; i++){
+    let c = node.children[i];
+    while (c.axis && c.children.length === 1 && c.children[0].axis) c = c.children[0];
+    node.children[i] = c;
+  }
+}
+
+function allCells(node, out){
+  out = out || [];
+  node.children.forEach(c => c.axis ? allCells(c, out) : out.push(c));
+  return out;
+}
+
+function hasMedia(node){
+  return node.axis ? node.children.some(hasMedia) : node.k === 'img';
+}
+
+/* 스타일 단계는 렌더러가 정한다 */
+function inferScale(s){
+  const cells = allCells(s.root);
+  s.bleed = cells.length > 0 && cells.every(c => c.k === 'img') && !s.bg;
+  if (s.index === 0) return 'cover';
+  if (cells.length === 1 && cells[0].k === 'title') return 'statement';
+  return 'plain';
+}
+
+/* =========================================================
+   2. RENDER
+   ========================================================= */
+
+function el(tag, cls, text){
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text != null) n.textContent = text;
+  return n;
+}
+
+function multiline(node, arr){
+  arr.forEach((t, i) => {
+    if (i) node.appendChild(el('br'));
+    node.appendChild(document.createTextNode(t));
+  });
+  return node;
+}
+
+function applyCrop(img, crop){
+  const c = crop || { z:1, x:50, y:50 };
+  img.style.setProperty('--z', c.z);
+  img.style.setProperty('--ox', c.x + '%');
+  img.style.setProperty('--oy', c.y + '%');
+}
+
+function imgNode(c){
+  const url = images.get(c.name);
+  if (c.name && url){
+    const i = el('img'); i.src = url; i.alt = c.name; i.draggable = false;
+    applyCrop(i, c.crop);
+    return i;
+  }
+  const ph = el('div','ph');
+  ph.appendChild(el('div', null, c.name || '빈 이미지 자리'));
+  ph.appendChild(el('div','sub', c.name ? '아직 없음 · 여기로 끌어다 놓기' : '여기로 끌어다 놓기'));
+  return ph;
+}
+
+function renderCell(c, live){
+  let n;
+  if (c.k === 'title'){
+    n = el('div','cell tblock');
+    const cap = el('div','caption', c.caption || ' ');
+    if (!c.caption) cap.classList.add('empty');
+    n.appendChild(cap);
+    if (c.title)    n.appendChild(el('div','title',    c.title));
+    if (c.subtitle) n.appendChild(el('div','subtitle', c.subtitle));
+  }
+  else if (c.k === 'list'){
+    n = el('div','cell list');
+    const size = Math.max(22, Math.min(52, 560 / (c.items.length * 1.42)));
+    n.style.fontSize = size.toFixed(1) + 'px';
+    c.items.forEach((t, i) => {
+      const row = el('div','item');
+      row.appendChild(el('span','no', String(i + 1).padStart(2, '0')));
+      row.appendChild(el('span', null, t));
+      n.appendChild(row);
+    });
+  }
+  else if (c.k === 'img'){
+    n = el('div','cell img');
+    const box = el('div','imgbox');
+    box.appendChild(imgNode(c));
+    n.appendChild(box);
+    if (c.caption) n.appendChild(el('div','figcap', c.caption));
+    if (live) wireImageCell(n, c);
+  }
+  else n = multiline(el('div','cell text'), c.lines);
+
+  if (live && c.line != null) n.dataset.line = c.line;
+  return n;
+}
+
+/* 트리 -> DOM. 세로 묶음에서는 이미지가 든 자식만 남은 높이를 나눠 갖는다 */
+function renderNode(node, isRoot, live){
+  const n = el('div', isRoot ? 'body' : node.axis);
+  if (node.axis === 'row'){
+    if (hasMedia(node)) n.classList.add('media');
+    n.classList.add(node.children.length > 1 ? 'multi' : 'solo');
+    if (node.children.length > 1 &&
+        node.children.some(c => !c.axis && c.k === 'title')) n.classList.add('hastitle');
+  }
+  node.children.forEach(c => {
+    const child = c.axis ? renderNode(c, false, live) : renderCell(c, live);
+    child.classList.add(node.axis === 'row' || hasMedia(c) ? 'grow' : 'nogrow');
+    n.appendChild(child);
+  });
+  return n;
+}
+
+function renderSlide(s, live){
+  const slide = el('div', 'slide s-' + s.scale + (s.bg ? ' hasbg' : '') + (s.bleed ? ' bleed' : ''));
+  if (s.bg){
+    const b = el('div','bgimg');
+    b.appendChild(imgNode({ name:s.bg }));
+    slide.appendChild(b);
+  }
+  slide.appendChild(renderNode(s.root, true, live));
+  if (s.footer) slide.appendChild(multiline(el('div','s-footer'), s.footer.split('\n')));
+  return slide;
+}
+
+/* =========================================================
+   3. 소스 되쓰기 (미리보기에서 한 조작을 텍스트에 반영)
+   ========================================================= */
+
+function sourceLine(idx){
+  const lines = editor.value.split('\n');
+  return idx >= 0 && idx < lines.length ? lines[idx] : null;
+}
+
+function writeLine(idx, text){
+  const lines = editor.value.split('\n');
+  if (idx < 0 || idx >= lines.length) return;
+  const indent = (lines[idx].match(/^\s*/) || [''])[0];
+  lines[idx] = indent + text;
+  const pos = editor.selectionStart;
+  editor.value = lines.join('\n');
+  editor.setSelectionRange(pos, pos);
+  touch();
+  render();
+}
+
+function updateImageLine(idx, patch){
+  const raw = sourceLine(idx);
+  if (raw == null) return;
+  const m = raw.trim().match(RE.img);
+  if (!m) return;
+  writeLine(idx, imgLine(Object.assign(parseImg(m[1]), patch)));
+}
+
+function wireImageCell(cell, c){
+  cell.addEventListener('dragover', e => {
+    if (!e.dataTransfer || ![...e.dataTransfer.types].includes('Files')) return;
+    e.preventDefault(); e.stopPropagation();
+    cell.classList.add('dropping');
+  });
+  cell.addEventListener('dragleave', () => cell.classList.remove('dropping'));
+  cell.addEventListener('drop', e => {
+    const f = e.dataTransfer && [...e.dataTransfer.files].find(f => /^image\//.test(f.type));
+    if (!f) return;
+    e.preventDefault(); e.stopPropagation();
+    cell.classList.remove('dropping');
+    registerImages([f]);
+    updateImageLine(c.line, { name:f.name });
+  });
+  cell.addEventListener('dblclick', e => {
+    e.preventDefault(); e.stopPropagation();
+    const box = cell.querySelector('.imgbox').getBoundingClientRect();
+    openCrop(c, box.width / box.height);
+  });
+}
+
+/* =========================================================
+   4. 크롭 편집
+   ========================================================= */
+
+let cropState = null;
+
+function openCrop(c, aspect){
+  const url = images.get(c.name);
+  if (!url){ flashHint('먼저 이미지를 이 자리에 끌어다 놓으세요.'); return; }
+  const crop = c.crop ? Object.assign({}, c.crop) : { z:1, x:50, y:50 };
+  cropState = { line:c.line, crop, aspect };
+
+  const frame = $('#cropframe');
+  frame.innerHTML = '';
+  const stageW = Math.min(620, window.innerWidth * 0.8);
+  const h = Math.min(stageW / aspect, window.innerHeight * 0.46);
+  frame.style.width  = (h * aspect) + 'px';
+  frame.style.height = h + 'px';
+  const img = el('img'); img.src = url; img.draggable = false;
+  frame.appendChild(img);
+  $('#cropName').textContent = c.name;
+  $('#cropZoom').value = Math.round(crop.z * 100);
+  paintCrop();
+  $('#cropwrap').classList.add('open');
+}
+
+function paintCrop(){
+  if (!cropState) return;
+  const { crop } = cropState;
+  const frame = $('#cropframe');
+  frame.style.setProperty('--z', crop.z);
+  frame.style.setProperty('--ox', crop.x + '%');
+  frame.style.setProperty('--oy', crop.y + '%');
+  $('#cropVal').textContent =
+    Math.round(crop.z * 100) + '%  ·  ' + Math.round(crop.x) + ' / ' + Math.round(crop.y);
+}
+
+function closeCrop(){ $('#cropwrap').classList.remove('open'); cropState = null; }
+
+(function wireCrop(){
+  const frame = $('#cropframe');
+  let dragging = false, lx = 0, ly = 0;
+
+  frame.addEventListener('pointerdown', e => {
+    if (!cropState) return;
+    dragging = true; lx = e.clientX; ly = e.clientY;
+    frame.classList.add('drag'); frame.setPointerCapture(e.pointerId);
+  });
+  frame.addEventListener('pointermove', e => {
+    if (!dragging || !cropState) return;
+    const img = frame.querySelector('img');
+    const w = frame.clientWidth, h = frame.clientHeight;
+    const nat = img.naturalWidth / img.naturalHeight, box = w / h;
+    const rw = nat > box ? h * nat : w;            /* cover 로 그려진 크기 */
+    const rh = nat > box ? h : w / nat;
+    const ox = Math.max(rw * cropState.crop.z - w, 1);
+    const oy = Math.max(rh * cropState.crop.z - h, 1);
+    cropState.crop.x = clamp(cropState.crop.x - (e.clientX - lx) / ox * 100, 0, 100);
+    cropState.crop.y = clamp(cropState.crop.y - (e.clientY - ly) / oy * 100, 0, 100);
+    lx = e.clientX; ly = e.clientY;
+    paintCrop();
+  });
+  const stop = e => { dragging = false; frame.classList.remove('drag'); };
+  frame.addEventListener('pointerup', stop);
+  frame.addEventListener('pointercancel', stop);
+  frame.addEventListener('wheel', e => {
+    if (!cropState) return;
+    e.preventDefault();
+    cropState.crop.z = clamp(cropState.crop.z * (e.deltaY > 0 ? 0.94 : 1.06), 1, 4);
+    $('#cropZoom').value = Math.round(cropState.crop.z * 100);
+    paintCrop();
+  }, { passive:false });
+
+  $('#cropZoom').addEventListener('input', e => {
+    if (!cropState) return;
+    cropState.crop.z = clamp(+e.target.value / 100, 1, 4);
+    paintCrop();
+  });
+  $('#cropReset').addEventListener('click', () => {
+    if (!cropState) return;
+    cropState.crop = { z:1, x:50, y:50 };
+    $('#cropZoom').value = 100;
+    paintCrop();
+  });
+  $('#cropCancel').addEventListener('click', closeCrop);
+  $('#cropApply').addEventListener('click', () => {
+    if (!cropState) return;
+    const { line, crop } = cropState;
+    closeCrop();
+    updateImageLine(line, { crop });
+  });
+  $('#cropwrap').addEventListener('click', e => { if (e.target.id === 'cropwrap') closeCrop(); });
+})();
+
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+/* =========================================================
+   5. PREVIEW + CURSOR SYNC
+   ========================================================= */
+
+let SLIDES = [];
+let activeIdx = -1;
+let renderTimer = null;
+let follow = true;
+
+function scheduleRender(){ clearTimeout(renderTimer); renderTimer = setTimeout(render, 120); }
+
+function render(){
+  const doc = parseDoc(editor.value);
+  const keepScroll = preview.scrollTop;   /* 타이핑 중 미리보기가 튀지 않도록 */
+  SLIDES = doc.slides;
+  preview.innerHTML = '';
+  printRoot.innerHTML = '';
+  $('#count').textContent = SLIDES.length ? SLIDES.length + ' slides' : '';
+
+  if (!SLIDES.length){
+    preview.appendChild(el('div','empty-note',
+      '왼쪽에 내용을 입력하면 슬라이드가 여기에 나타납니다.\n--- 로 슬라이드를 구분하세요.\n우측 상단 "문법" 을 참고하세요.'));
+    $('#nowLabel').textContent = '';
+    return;
+  }
+
+  SLIDES.forEach((s, i) => {
+    const item = el('div','pv-item');
+    item.dataset.idx = i;
+    item.appendChild(el('div','pv-label', (i+1) + ' · ' + s.scale));
+    const frame = el('div','pv-frame');
+    frame.appendChild(renderSlide(s, true));
+    item.appendChild(frame);
+    item.addEventListener('click', e => {
+      const cell = e.target.closest('[data-line]');
+      if (cell) jumpToLine(+cell.dataset.line, i); else jumpToSlide(i);
+    });
+    preview.appendChild(item);
+
+    printRoot.appendChild(renderSlide(s, false));
+  });
+  fitSlides();
+  preview.scrollTop = keepScroll;
+  syncFromCursor(true);
+}
+
+function fitSlides(){
+  document.querySelectorAll('.pv-frame').forEach(frame => {
+    const w = frame.clientWidth;
+    frame.style.height = (w * 720 / 1280) + 'px';
+    const slide = frame.querySelector('.slide');
+    if (slide) slide.style.transform = 'scale(' + (w / 1280) + ')';
+  });
+}
+new ResizeObserver(fitSlides).observe(preview);
+
+function cursorLine(){
+  const i = editor.selectionStart;
+  let n = 0;
+  for (let k = 0; k < i; k++) if (editor.value.charCodeAt(k) === 10) n++;
+  return n;
+}
+
+function slideAtLine(line){
+  let idx = 0;
+  for (let i = 0; i < SLIDES.length; i++){
+    if (SLIDES[i].from <= line) idx = i; else break;
+  }
+  return idx;
+}
+
+function setActive(i){
+  const prev = preview.querySelector('.pv-item.active');
+  if (prev) prev.classList.remove('active');
+  const item = preview.children[i];
+  if (item && item.classList) item.classList.add('active');
+  $('#nowLabel').textContent = SLIDES.length ? 'slide ' + (i+1) + ' / ' + SLIDES.length : '';
+}
+
+function syncFromCursor(fromRender){
+  if (!SLIDES.length) return;
+  const idx = slideAtLine(cursorLine());
+  const changed = idx !== activeIdx;
+  activeIdx = idx;
+  setActive(idx);
+  if (!follow) return;
+
+  const item = preview.children[idx];
+  if (!item || !item.getBoundingClientRect) return;
+  const target = Math.max(0, item.offsetTop - 18);
+  const pr = preview.getBoundingClientRect();
+  const ir = item.getBoundingClientRect();
+  const outOfView = ir.top < pr.top + 4 || ir.bottom > pr.bottom - 4;
+
+  if (changed && !fromRender)      preview.scrollTo({ top:target, behavior:'smooth' });
+  else if (changed || outOfView)   preview.scrollTop = target;
+}
+
+function offsetOfLine(idx){
+  const src = editor.value.split('\n');
+  let pos = 0;
+  for (let k = 0; k < idx && k < src.length; k++) pos += src[k].length + 1;
+  return pos;
+}
+
+function jumpToLine(lineIdx, slideIdx){
+  const pos = offsetOfLine(lineIdx) + (sourceLine(lineIdx) || '').length;
+  editor.focus();
+  editor.setSelectionRange(pos, pos);
+  editor.scrollTop = Math.max(0, caretTop(pos) - editor.clientHeight / 3);
+  if (slideIdx != null){ activeIdx = slideIdx; setActive(slideIdx); }
+}
+
+function jumpToSlide(i){
+  const s = SLIDES[i]; if (!s) return;
+  const src = editor.value.split('\n');
+  let k = s.from;
+  while (k <= s.to && k < src.length && !src[k].trim()) k++;
+  jumpToLine(Math.min(k, src.length - 1), i);
+}
+
+/* textarea 안에서 특정 위치의 세로 오프셋 (mirror 로 측정) */
+function caretTop(index){
+  const cs = getComputedStyle(editor);
+  const m = document.createElement('div');
+  ['fontFamily','fontSize','fontWeight','lineHeight','letterSpacing',
+   'paddingTop','paddingRight','paddingBottom','paddingLeft',
+   'borderTopWidth','borderLeftWidth','textTransform','tabSize']
+    .forEach(p => m.style[p] = cs[p]);
+  Object.assign(m.style, {
+    position:'absolute', top:'0', left:'-9999px', visibility:'hidden',
+    boxSizing:'border-box', width: editor.clientWidth + 'px',
+    whiteSpace:'pre-wrap', wordWrap:'break-word'
+  });
+  m.textContent = editor.value.slice(0, index);
+  const mark = document.createElement('span');
+  mark.textContent = '\u200b';
+  m.appendChild(mark);
+  document.body.appendChild(m);
+  const top = mark.offsetTop;
+  m.remove();
+  return top;
+}
+
+document.addEventListener('selectionchange', () => {
+  if (document.activeElement === editor) syncFromCursor();
+});
+editor.addEventListener('click', () => syncFromCursor());
+editor.addEventListener('keyup', () => syncFromCursor());
+
+$('#btnFollow').addEventListener('click', e => {
+  follow = !follow;
+  e.currentTarget.classList.toggle('on', follow);
+  if (follow) syncFromCursor();
+});
+
+/* =========================================================
+   6. IMAGES
+   ========================================================= */
+
+function refreshStrip(){
+  imgstrip.innerHTML = '';
+  if (!images.size){
+    const h = el('span','hint');
+    h.innerHTML = '이미지를 미리보기의 <b>빈 자리에 직접 끌어다 놓으세요</b> · 칩을 클릭하면 커서 위치에 <b>!파일명</b> 이 삽입됩니다';
+    imgstrip.appendChild(h);
+    return;
+  }
+  images.forEach((url, name) => {
+    const chip = el('button','chip');
+    const th = el('img'); th.src = url; chip.appendChild(th);
+    chip.appendChild(document.createTextNode(name));
+    const x = el('span','x','×');
+    x.title = '제거';
+    x.addEventListener('click', e => {
+      e.stopPropagation();
+      URL.revokeObjectURL(url);
+      images.delete(name);
+      refreshStrip(); render();
+    });
+    chip.appendChild(x);
+    chip.title = '클릭하면 소스에 삽입';
+    chip.addEventListener('click', () => insertAtCursor('!' + name + '\n'));
+    imgstrip.appendChild(chip);
+  });
+}
+
+function registerImages(files){
+  let n = 0;
+  for (const f of files){
+    if (!/^image\//.test(f.type)) continue;
+    if (images.has(f.name)) URL.revokeObjectURL(images.get(f.name));
+    images.set(f.name, URL.createObjectURL(f));
+    n++;
+  }
+  if (n){ refreshStrip(); render(); }
+  return n;
+}
+
+function insertAtCursor(text){
+  const start = editor.selectionStart, end = editor.selectionEnd;
+  editor.value = editor.value.slice(0, start) + text + editor.value.slice(end);
+  editor.selectionStart = editor.selectionEnd = start + text.length;
+  editor.focus();
+  touch(); scheduleRender();
+}
+
+function flashHint(msg){
+  const s = $('#fileState'); const old = s.textContent;
+  s.textContent = msg;
+  setTimeout(() => { if (s.textContent === msg) s.textContent = old; }, 2200);
+}
+
+/* =========================================================
+   7. 파일 (진짜 편집기)
+   ========================================================= */
+
+const CAN_FS = typeof window.showOpenFilePicker === 'function';
+const TYPES = [{ description:'PpTex', accept:{ 'text/plain':['.pptex','.txt','.md'] } }];
+let fileHandle = null, dirty = false, saveTimer = null;
+
+function setFileUI(){
+  const info = $('#fileinfo');
+  info.classList.toggle('nofile', !fileHandle);
+  info.classList.toggle('dirty', dirty && !!fileHandle);
+  $('#fileName').textContent = fileHandle ? fileHandle.name : '제목 없음';
+  $('#fileState').textContent = fileHandle ? (dirty ? '수정됨' : '저장됨') : '파일 없음 · 브라우저에 임시 저장';
+}
+
+function touch(){
+  dirty = true; setFileUI();
+  try { localStorage.setItem(STORE_KEY, editor.value); } catch(_){}
+  if (fileHandle){ clearTimeout(saveTimer); saveTimer = setTimeout(() => saveFile(true), 800); }
+}
+
+function setSource(text){
+  editor.value = text;
+  editor.setSelectionRange(0, 0);
+  dirty = false; setFileUI();
+  render(); activeIdx = -1; syncFromCursor(true);
+}
+
+async function saveFile(auto){
+  if (!fileHandle){
+    if (!CAN_FS) return downloadFallback();
+    try { fileHandle = await showSaveFilePicker({ suggestedName:'deck.pptex', types:TYPES }); }
+    catch(_){ return; }
+  }
+  try {
+    const w = await fileHandle.createWritable();
+    await w.write(editor.value);
+    await w.close();
+    dirty = false; setFileUI();
+    if (!auto) flashHint('저장했습니다');
+  } catch(err){
+    $('#fileState').textContent = '저장 실패: ' + err.message;
+  }
+}
+
+function downloadFallback(){
+  const blob = new Blob([editor.value], { type:'text/plain' });
+  const a = el('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'deck.pptex';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+}
+
+async function openFile(){
+  if (!CAN_FS) return $('#fileSrc').click();
+  try {
+    const [h] = await showOpenFilePicker({ types:TYPES, multiple:false });
+    await adoptHandle(h);
+  } catch(_){}
+}
+
+async function adoptHandle(h){
+  fileHandle = h;
+  const f = await h.getFile();
+  setSource(await f.text());
+}
+
+async function newFile(){
+  setSource('# \n');
+  fileHandle = null; setFileUI();
+  if (CAN_FS){
+    try { fileHandle = await showSaveFilePicker({ suggestedName:'untitled.pptex', types:TYPES }); }
+    catch(_){ setFileUI(); return; }
+    await saveFile(true);
+  }
+  editor.focus();
+  editor.setSelectionRange(2, 2);
+}
+
+$('#btnNew').addEventListener('click', newFile);
+$('#btnOpen').addEventListener('click', openFile);
+$('#btnSave').addEventListener('click', () => saveFile(false));
+
+$('#fileSrc').addEventListener('change', e => {          /* FS API 없는 브라우저 */
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => setSource(r.result);
+  r.readAsText(f);
+  e.target.value = '';
+});
+
+$('#btnImgs').addEventListener('click', () => $('#fileImgs').click());
+$('#fileImgs').addEventListener('change', e => { registerImages(e.target.files); e.target.value = ''; });
+
+$('#btnPdf').addEventListener('click', () => { render(); setTimeout(() => window.print(), 60); });
+$('#btnHelp').addEventListener('click', () => $('#help').classList.toggle('open'));
+$('#btnHelpClose').addEventListener('click', () => $('#help').classList.remove('open'));
+
+/* 창 전체 드롭: 이미지는 등록만, 텍스트 파일은 열기 */
+['dragenter','dragover'].forEach(ev => window.addEventListener(ev, e => e.preventDefault()));
+window.addEventListener('drop', async e => {
+  e.preventDefault();
+  if (!e.dataTransfer) return;
+  for (const item of e.dataTransfer.items || []){
+    if (item.kind !== 'file') continue;
+    const f = item.getAsFile();
+    if (f && /\.(pptex|txt|md)$/i.test(f.name)){
+      if (item.getAsFileSystemHandle){
+        try { return await adoptHandle(await item.getAsFileSystemHandle()); } catch(_){}
+      }
+      return setSource(await f.text());
+    }
+  }
+  registerImages(e.dataTransfer.files);
+});
+
+editor.addEventListener('input', () => { touch(); scheduleRender(); });
+editor.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's'){ e.preventDefault(); saveFile(false); return; }
+  if (e.key === 'Tab'){ e.preventDefault(); insertAtCursor('    '); return; }
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)){
+    e.preventDefault(); insertAtCursor('\n\n---\n\n');
+  }
+});
+window.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's' && document.activeElement !== editor){
+    e.preventDefault(); saveFile(false);
+  }
+  if (e.key === 'Escape') closeCrop();
+});
+window.addEventListener('beforeunload', e => {
+  if (dirty && fileHandle){ e.preventDefault(); e.returnValue = ''; }
+});
+
+/* ---------- boot ---------- */
+let saved = null;
+try { saved = localStorage.getItem(STORE_KEY); } catch(_){}
+editor.value = (saved && saved.trim()) ? saved : DEFAULT_SRC;
+editor.setSelectionRange(0, 0);
+setFileUI();
+refreshStrip();
+render();
+activeIdx = -1; syncFromCursor(true);
+window.addEventListener('resize', fitSlides);
+window.addEventListener('load', () => setTimeout(fitSlides, 300));
+</script>
+</body>
+</html>
