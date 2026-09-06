@@ -146,7 +146,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
 .cell.img{gap:14px}
 .imgbox{flex:1 1 auto;min-height:0;position:relative;overflow:hidden;
         border-radius:var(--radius);corner-shape:squircle;background:#151515}
-.imgbox img{width:100%;height:100%;object-fit:cover;
+/* 사진은 흐름에서 빼서 상자 크기에 전혀 관여하지 않게 한다.
+   height:100% 인 채로 흐름에 남으면, 인쇄(페이지 분할) 레이아웃에서 이 퍼센트가
+   풀리지 않아 사진이 제 비율대로 부풀고 가로로 놓인 사진들의 높이가 어긋난다. */
+.imgbox img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
             object-position:var(--ox,50%) var(--oy,50%);
             transform:scale(var(--z,1));transform-origin:var(--ox,50%) var(--oy,50%)}
 .cell.img .figcap{flex:none;text-align:center;font-size:var(--figc);font-weight:600}
