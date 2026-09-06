@@ -190,6 +190,28 @@ The reference renderer doubles as an editor.
 | Double-click an image | Set zoom and focal point |
 | Drag an image onto a slot | Fill it in, writing the filename into the source |
 
+### Image folder
+
+Images can live next to the deck instead of only in the browser. Click the folder chip
+in the image strip and pick the folder your `.pptex` / `.txt` file is in:
+
+- If that folder holds an image folder — `images`, `img`, `assets`, `media`, … — its
+  contents are loaded on open, so every `!name.jpg` in the source previews right away.
+  Images sitting loose beside the deck are picked up too.
+- Images you drag onto the window or onto a slot are **written into that folder**, so
+  they survive closing the editor. A drop whose name is already taken by a different
+  file becomes `name-1.jpg`; re-dropping the same image reuses the file already there.
+- If the folder has no images at all yet, `images/` is created on the first drop.
+- The folder is remembered per deck. Reopen the same file later and its images come
+  back on their own — the browser may ask you to re-allow access once, which the chip
+  prompts for.
+
+Without a linked folder, dropped images stay in memory for that session only, as before.
+
+Chromium only, and needs `http://localhost` or HTTPS.
+
+### Files
+
 Opening a `.pptex` / `.txt` file edits **that file in place**, autosaving shortly after
 each change. Dropping a text file onto the window opens it. Without a file open, work
 is kept in browser storage only — and a stored draft that is still an untouched sample
