@@ -202,3 +202,7 @@ each change. Dropping a text file onto the window opens it. Without a file open,
 is kept in browser storage only.
 
 The preview follows the caret: the slide your cursor is in stays in view as you type.
+
+**PDF** — the PDF button exports one 16:9 page (1280×720) per slide, at full bleed with
+no trailing blank page. Colours are forced with `print-color-adjust: exact`, so the
+browser's "Background graphics" setting does not matter; set margins to none.

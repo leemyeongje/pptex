@@ -71,10 +71,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
 .slide{
   width:1280px;height:720px;background:#000;color:#fff;font-family:var(--font);
   overflow:hidden;position:relative;display:flex;flex-direction:column;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;
   padding:44px 56px 52px;
   --cap:17px; --capgap:8px; --tit:42px; --sub:42px; --body:26px; --figc:24px;
   --rowgap:34px; --radius:26px;
 }
+.slide *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .slide.s-cover{padding:60px 64px;--cap:20px;--tit:76px;--sub:44px;--body:29px}
 .slide.s-statement{padding:64px;--tit:58px;--sub:34px}
 
@@ -193,10 +195,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
 #print-root{display:none}
 @media print{
   @page{size:1280px 720px;margin:0}
-  body{overflow:visible;background:#fff}
+  /* 화면용 html,body{height:100%} 가 인쇄에서 페이지 나눔을 망가뜨린다 */
+  html,body{width:1280px;height:auto;min-height:0;margin:0;padding:0;
+            background:#fff;overflow:visible}
   .app,#help,#cropwrap{display:none !important}
-  #print-root{display:block}
-  #print-root .slide{page-break-after:always;break-after:page}
+  #print-root{display:block;width:1280px;margin:0;padding:0}
+  #print-root .slide{
+    width:1280px;height:720px;overflow:hidden;
+    page-break-after:always;break-after:page;
+    page-break-inside:avoid;break-inside:avoid;
+  }
+  /* 마지막 장 뒤에 빈 페이지가 붙지 않게 */
+  #print-root .slide:last-child{page-break-after:auto;break-after:auto}
 }
 </style>
 </head>
@@ -375,7 +385,7 @@ Cables become tangled, and the experience becomes fragmented.</pre>
     <tr><td>이미지 더블클릭</td><td>확대·초점 맞추기</td></tr>
     <tr><td>이미지 드래그&드롭</td><td>미리보기의 그 자리에 채워 넣기</td></tr>
   </table>
-  <p class="note">PDF 는 인쇄 창에서 <b>여백: 없음</b>, <b>배경 그래픽: 켬</b>으로 저장하세요.</p>
+  <p class="note">PDF 는 인쇄 창에서 <b>대상: PDF로 저장</b>, <b>여백: 없음</b>으로 내보냅니다. 페이지는 16:9(1280×720)로, 배경색은 <b>배경 그래픽 설정과 상관없이</b> 그대로 인쇄됩니다.</p>
 </aside>
 
 <div id="print-root"></div>
@@ -1222,7 +1232,14 @@ $('#fileSrc').addEventListener('change', e => {          /* FS API 없는 브라
 $('#btnImgs').addEventListener('click', () => $('#fileImgs').click());
 $('#fileImgs').addEventListener('change', e => { registerImages(e.target.files); e.target.value = ''; });
 
-$('#btnPdf').addEventListener('click', () => { render(); setTimeout(() => window.print(), 60); });
+$('#btnPdf').addEventListener('click', async () => {
+  render();
+  try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch(_){}
+  await Promise.all([...printRoot.querySelectorAll('img')]
+    .map(i => i.decode ? i.decode().catch(() => {}) : Promise.resolve()));
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  window.print();
+});
 $('#btnHelp').addEventListener('click', () => $('#help').classList.toggle('open'));
 $('#btnHelpClose').addEventListener('click', () => $('#help').classList.remove('open'));
 
