@@ -274,6 +274,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
   <button class="close" id="btnHelpClose" aria-label="닫기">×</button>
   <h2>PpTex 문법</h2>
   <p>무엇이 슬라이드에 있고 요소들이 <b>공간적으로 어떤 관계</b>인지만 적습니다. 색·크기·여백 같은 스타일은 렌더러가 정합니다.</p>
+  <p style="margin-top:12px"><button class="btn" id="btnSample">예시 문서 불러오기</button></p>
 
   <h3>1. 슬라이드</h3>
   <pre># 첫 슬라이드
@@ -481,7 +482,39 @@ const printRoot = $('#print-root');
 const imgstrip  = $('#imgstrip');
 const images    = new Map();   // filename -> objectURL
 
-const STORE_KEY = 'pptex.src';
+const STORE_KEY = 'pptex.draft';
+const LEGACY_KEYS = ['pptex.src'];
+
+/* 지금까지 기본으로 실려 있던 예시 문서들의 지문.
+   임시 저장본이 '손대지 않은 예시' 이면 새 예시로 갈아끼우고,
+   직접 쓴 내용이면 그대로 살린다. */
+const SAMPLE_FINGERPRINTS = new Set([
+  '1l0vssg-1087',   // 첫 예시 (실제 발표 자료에서 가져왔던 것)
+]);
+
+function fingerprint(t){
+  const s = String(t).replace(/\r\n/g, '\n').trim();
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+  return h.toString(36) + '-' + s.length;
+}
+
+function isSample(t){
+  return fingerprint(t) === fingerprint(DEFAULT_SRC) || SAMPLE_FINGERPRINTS.has(fingerprint(t));
+}
+
+function loadDraft(){
+  let v = null;
+  try { v = localStorage.getItem(STORE_KEY); } catch(_){}
+  if (v == null){
+    for (const k of LEGACY_KEYS){
+      try { if (v == null) v = localStorage.getItem(k); localStorage.removeItem(k); } catch(_){}
+    }
+  }
+  if (v == null || !v.trim() || isSample(v)) return DEFAULT_SRC;
+  try { localStorage.setItem(STORE_KEY, v); } catch(_){}   /* 옛 키에서 옮겨온 내용을 바로 붙든다 */
+  return v;
+}
 
 /* =========================================================
    1. PARSE
@@ -1160,7 +1193,10 @@ function setFileUI(){
 
 function touch(){
   dirty = true; setFileUI();
-  try { localStorage.setItem(STORE_KEY, editor.value); } catch(_){}
+  try {
+    if (isSample(editor.value)) localStorage.removeItem(STORE_KEY);
+    else localStorage.setItem(STORE_KEY, editor.value);
+  } catch(_){}
   if (fileHandle){ clearTimeout(saveTimer); saveTimer = setTimeout(() => saveFile(true), 800); }
 }
 
@@ -1248,6 +1284,11 @@ $('#btnPdf').addEventListener('click', async () => {
 });
 $('#btnHelp').addEventListener('click', () => $('#help').classList.toggle('open'));
 $('#btnHelpClose').addEventListener('click', () => $('#help').classList.remove('open'));
+$('#btnSample').addEventListener('click', () => {
+  setSource(DEFAULT_SRC);
+  try { localStorage.removeItem(STORE_KEY); } catch(_){}
+  $('#help').classList.remove('open');
+});
 
 /* 창 전체 드롭: 이미지는 등록만, 텍스트 파일은 열기 */
 ['dragenter','dragover'].forEach(ev => window.addEventListener(ev, e => e.preventDefault()));
@@ -1286,9 +1327,7 @@ window.addEventListener('beforeunload', e => {
 });
 
 /* ---------- boot ---------- */
-let saved = null;
-try { saved = localStorage.getItem(STORE_KEY); } catch(_){}
-editor.value = (saved && saved.trim()) ? saved : DEFAULT_SRC;
+editor.value = loadDraft();
 editor.setSelectionRange(0, 0);
 setFileUI();
 refreshStrip();

@@ -192,7 +192,9 @@ The reference renderer doubles as an editor.
 
 Opening a `.pptex` / `.txt` file edits **that file in place**, autosaving shortly after
 each change. Dropping a text file onto the window opens it. Without a file open, work
-is kept in browser storage only.
+is kept in browser storage only — and a stored draft that is still an untouched sample
+is replaced by the current one, so a new sample is never shadowed by an old copy. The
+syntax panel has a **예시 문서 불러오기** button to load the sample deck at any time.
 
 The preview follows the caret: the slide your cursor is in stays in view as you type.
 
