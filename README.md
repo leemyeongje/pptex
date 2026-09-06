@@ -4,13 +4,18 @@ PpTex is a minimal markup language for rapidly creating presentations in a consi
 visual style. It describes **content, hierarchy, and spatial relationships**, while
 visual styling is handled by the renderer.
 
-`pptex.html` is the reference renderer and editor — a single self-contained file.
-Open it in a Chromium browser (serve it over `http://localhost`, since editing files
-in place needs a secure context).
+**→ [leemyeongje.github.io/pptex](https://leemyeongje.github.io/pptex/)**
+
+`index.html` is the reference renderer and editor — one self-contained file, no build
+step. Use the link above, or run it locally:
 
 ```
-python3 -m http.server 8000   # then open http://localhost:8000/pptex.html
+python3 -m http.server 8000   # then open http://localhost:8000/
 ```
+
+Open it over `http://localhost` or the HTTPS link rather than `file://` — editing files
+in place needs a secure context. Chromium browsers only for the file-editing and
+squircle parts; everything else renders anywhere.
 
 ## Syntax
 

@@ -792,9 +792,10 @@ function writeLine(idx, text){
   if (idx < 0 || idx >= lines.length) return;
   const indent = (lines[idx].match(/^\s*/) || [''])[0];
   lines[idx] = indent + text;
-  const pos = editor.selectionStart;
   editor.value = lines.join('\n');
-  editor.setSelectionRange(pos, pos);
+  let pos = 0;                       /* 고친 줄 끝으로 커서를 옮겨 둔다 */
+  for (let k = 0; k < idx; k++) pos += lines[k].length + 1;
+  editor.setSelectionRange(pos + lines[idx].length, pos + lines[idx].length);
   touch();
   render();
 }
@@ -819,7 +820,7 @@ function wireImageCell(cell, c){
     if (!f) return;
     e.preventDefault(); e.stopPropagation();
     cell.classList.remove('dropping');
-    registerImages([f]);
+    registerImages([f], true);
     updateImageLine(c.line, { name:f.name });
   });
   cell.addEventListener('dblclick', e => {
@@ -1019,6 +1020,9 @@ function syncFromCursor(fromRender){
   const ir = item.getBoundingClientRect();
   const outOfView = ir.top < pr.top + 4 || ir.bottom > pr.bottom - 4;
 
+  /* 다시 그릴 때는 에디터를 실제로 만지고 있을 때만 따라간다.
+     (이미지를 끌어다 놓거나 추가했을 뿐인데 미리보기가 튀는 것을 막는다) */
+  if (fromRender && document.activeElement !== editor) return;
   if (changed && !fromRender)      preview.scrollTo({ top:target, behavior:'smooth' });
   else if (changed || outOfView)   preview.scrollTop = target;
 }
@@ -1112,7 +1116,7 @@ function refreshStrip(){
   });
 }
 
-function registerImages(files){
+function registerImages(files, quiet){
   let n = 0;
   for (const f of files){
     if (!/^image\//.test(f.type)) continue;
@@ -1120,7 +1124,7 @@ function registerImages(files){
     images.set(f.name, URL.createObjectURL(f));
     n++;
   }
-  if (n){ refreshStrip(); render(); }
+  if (n){ refreshStrip(); if (!quiet) render(); }   /* quiet: 곧 이어질 render 에 맡긴다 */
   return n;
 }
 
