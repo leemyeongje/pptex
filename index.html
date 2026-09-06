@@ -74,6 +74,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
   -webkit-print-color-adjust:exact;print-color-adjust:exact;
   padding:44px 56px 52px;
   --cap:17px; --capgap:8px; --tit:42px; --sub:42px; --body:26px; --figc:24px;
+  --tit-lh:1.13; --body-lh:1.5;
+  /* 제목 블록에서 캡션이 차지하는 높이 (캡션이 없어도 자리는 늘 확보된다) */
+  --capslot:calc(var(--cap) * 1.35 + var(--capgap));
   --rowgap:34px; --radius:26px;
 }
 .slide *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -106,7 +109,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
 .tblock .caption{font-size:var(--cap);font-weight:600;color:#8f8f8f;letter-spacing:.04em;
                  line-height:1.35;height:calc(var(--cap) * 1.35);margin-bottom:var(--capgap)}
 .tblock .caption.empty{visibility:hidden}
-.tblock .title{font-size:var(--tit);font-weight:800;line-height:1.13;letter-spacing:-.012em}
+.tblock .title{font-size:var(--tit);font-weight:800;line-height:var(--tit-lh);letter-spacing:-.012em}
 .tblock .subtitle{font-size:var(--sub);font-weight:700;line-height:1.16;color:#8f8f8f;margin-top:2px}
 .slide.hasbg .tblock .caption,.slide.hasbg .tblock .subtitle{color:#d8d8d8}
 
@@ -119,7 +122,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
 .s-statement .tblock .subtitle{position:absolute;left:0;right:0;top:100%;margin:14px 0 0}
 
 /* body text */
-.cell.text{font-size:var(--body);font-weight:600;line-height:1.5;letter-spacing:-.004em}
+.cell.text{font-size:var(--body);font-weight:600;line-height:var(--body-lh);letter-spacing:-.004em}
+/* 제목과 가로로 나란히 놓인 본문은 캡션 칸을 건너뛰고 제목의 윗단에 맞춘다.
+   line-height 로 생기는 위쪽 여백 차이까지 빼서 글자 윗선이 실제로 나란해진다. */
+.row.hastitle > .cell.text{
+  margin-top:calc(var(--capslot)
+                  + var(--tit) * (var(--tit-lh) - 1) / 2
+                  - var(--body) * (var(--body-lh) - 1) / 2);
+}
 
 /* numbered list */
 .cell.list{justify-content:flex-start}
@@ -284,9 +294,6 @@ Body text sits beside the title block.</pre>
     <tr><td>(없음)</td><td>본문</td></tr>
     <tr><td>1.</td><td>번호 목록</td></tr>
   </table>
-  <p class="note">따옴표는 문법이 아닙니다. 그냥 글자입니다.</p>
-  <pre># "Quotation marks are just text."
-## Attribution</pre>
   <p class="note">캡션이 있든 없든 <b>제목의 위치와 크기는 똑같습니다.</b> 번호 목록은 붙여 쓴 <code>1. 2. 3.</code> 줄이 한 덩어리로 묶입니다.</p>
 
   <h3>3. 이미지</h3>
@@ -464,8 +471,7 @@ A backslash breaks a line inside the same block.
 ---
 
 @footer Thank you
-# "Quotation marks are just text."
-## Attribution
+# Thank you
 `;
 
 const $ = s => document.querySelector(s);

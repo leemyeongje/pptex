@@ -56,13 +56,6 @@ Content
 Body text sits beside the title block.
 ```
 
-Quotation marks have no special syntax. They are simply part of the text.
-
-```
-# "Quotation marks are just text."
-## Attribution
-```
-
 Adjacent `^` / `#` / `##` lines coalesce into a single title block. The title keeps
 exactly the same position and size whether or not a caption is present.
 
