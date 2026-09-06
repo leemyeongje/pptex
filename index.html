@@ -264,9 +264,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
 
   <h3>2. 글의 계층</h3>
   <pre>^ 01
-# Fragmented Objects
-## Problem
-Books, cables, and devices exist as separate objects.</pre>
+# Section Title
+## Subtitle
+Body text sits beside the title block.</pre>
   <table>
     <tr><td>^</td><td>캡션 (제목 위 작은 글씨)</td></tr>
     <tr><td>#</td><td>제목</td></tr>
@@ -275,20 +275,20 @@ Books, cables, and devices exist as separate objects.</pre>
     <tr><td>1.</td><td>번호 목록</td></tr>
   </table>
   <p class="note">따옴표는 문법이 아닙니다. 그냥 글자입니다.</p>
-  <pre># "Eventually everything connects."
-## Charles Eames</pre>
+  <pre># "Quotation marks are just text."
+## Attribution</pre>
   <p class="note">캡션이 있든 없든 <b>제목의 위치와 크기는 똑같습니다.</b> 번호 목록은 붙여 쓴 <code>1. 2. 3.</code> 줄이 한 덩어리로 묶입니다.</p>
 
   <h3>3. 이미지</h3>
-  <pre>!desk-mess.jpg
+  <pre>!photo.jpg
 
-!p1.png | Cable Reduction
-!p2.png | Modularity
-!p3.png | Orientation Flexibility</pre>
+!a.jpg | First
+!b.jpg | Second
+!c.jpg | Third</pre>
   <p><code>!</code> 만 쓰면 <b>빈 이미지 자리</b>가 됩니다. 미리보기의 그 자리에 이미지를 끌어다 놓으면 파일명이 소스에 채워집니다.</p>
   <pre>!</pre>
   <p>이미지는 자리에 꽉 차게 잘립니다. 미리보기의 이미지를 <b>더블클릭</b>하면 확대·초점을 맞출 수 있고, 그 값이 <code>~</code> 뒤에 기록됩니다.</p>
-  <pre>!christ.jpg ~ 1.4 38 22 | Heidelberg</pre>
+  <pre>!photo.jpg ~ 1.4 38 22 | Caption</pre>
   <p class="note">직접 칠 일은 거의 없습니다. <code>~ 확대 초점X 초점Y</code> 순서입니다.</p>
 
   <h3>4. 배치</h3>
@@ -338,10 +338,10 @@ Cables become tangled, and the experience becomes fragmented.</pre>
   </table>
 
   <h3>7. 슬라이드 수식어</h3>
-  <pre>@bg !pills.jpg
-@footer 20250515 Myeongje Lee \
-2026. 06. 17</pre>
-  <p><code>!</code> 의 뜻은 그대로입니다. <code>!pills.jpg</code> 는 요소로 놓이고, <code>@bg !pills.jpg</code> 는 슬라이드 배경이 됩니다.</p>
+  <pre>@bg !backdrop.jpg
+@footer Your name \
+2026</pre>
+  <p><code>!</code> 의 뜻은 그대로입니다. <code>!backdrop.jpg</code> 는 요소로 놓이고, <code>@bg !backdrop.jpg</code> 는 슬라이드 배경이 됩니다.</p>
   <p class="note">PpTex 에는 <code>@color</code> <code>@size</code> <code>@margin</code> <code>@align</code> 같은 저수준 스타일 속성이 없습니다.</p>
 
   <h3>문법 요약</h3>
@@ -387,91 +387,75 @@ Cables become tangled, and the experience becomes fragmented.</pre>
    규칙은 모든 깊이에서 동일하다.
    ========================================================= */
 
-const DEFAULT_SRC = `@footer 20250515 Myeongje Lee \\
-2026. 06. 17
-# Reimagining Desk Accessories
-## as a Connected Ecosystem
-!cover.png
+const DEFAULT_SRC = `@footer Your name \\
+2026
+
+# Presentation Title
+## A subtitle sits under it
+!
 
 ---
 
 ^ 01
-# Fragmented Objects
-## Problem
-Objects on the desk exist separately. \\
-Cables become tangled, and the experience becomes fragmented.
+# A title and some text
+## Subtitle
+Lines written one after another sit side by side. \\
+A backslash breaks a line inside the same block.
 
-!desk-mess.jpg
+!
 
 ---
 
 ^ 02
-# Three Principles
-## Design Goals
+# Three across
+## One line each, so they line up horizontally
 
-!p1.png | Cable Reduction
-!p2.png | Modularity
-!p3.png | Orientation Flexibility
+! | First
+! | Second
+! | Third
 
 ---
 
 ^ 03
-# Magnetic Joint
-## Detail
+# A group holds a stack
+## Brackets turn many elements into one
 
-!module.jpg
+!
 [
-    ## Two modules lock together
+    ## Heading
 
-    Power and signal pass through without a cable.
+    A blank line stacks these downward.
 
-    Contact diameter 18 mm / Maximum tension 3.2 kg
+    The whole group sits beside the image.
 ]
 
 ---
 
-@footer 20250515 Myeongje Lee \\
-2026. 06. 17
-@bg !pills.jpg
-# Prototype for Infinity
+^ 04
+# A numbered list
+## Adjacent numbers become one block
 
----
-
-# Reference
-## Museum Walk
-
-!christ.jpg
-
-Christ as a Pharmacist \\
-Austria, 1st half of the 18th century. \\
-German Apothecary Museum, Heidelberg.
-
----
-
-!full-render.jpg
-
----
-
-1. The Nature of Story
-2. Award Introduction
-3. Core Concept
-4. Form Translation
-5. Design Outcome
-!trophy-closeup.png
-
----
-
-# Next
-##
-
-!
+1. First point
+2. Second point
+3. Third point
+4. Fourth point
+5. Fifth point
 !
 
 ---
 
-@bg !final-scene.jpg
-# "Eventually everything connects."
-## Charles Eames
+!
+
+---
+
+# A slide with only a title
+## lands exactly in the centre
+
+---
+
+@footer Thank you
+# "Quotation marks are just text."
+## Attribution
 `;
 
 const $ = s => document.querySelector(s);

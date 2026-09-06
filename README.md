@@ -51,16 +51,16 @@ Content
 
 ```
 ^ 01
-# Fragmented Objects
-## Problem
-Books, cables, and devices exist as separate objects.
+# Section Title
+## Subtitle
+Body text sits beside the title block.
 ```
 
 Quotation marks have no special syntax. They are simply part of the text.
 
 ```
-# "Eventually everything connects."
-## Charles Eames
+# "Quotation marks are just text."
+## Attribution
 ```
 
 Adjacent `^` / `#` / `##` lines coalesce into a single title block. The title keeps
@@ -71,11 +71,11 @@ Adjacent `1.` `2.` `3.` lines coalesce into a single numbered list.
 ### 3. Images
 
 ```
-!desk-mess.jpg
+!photo.jpg
 
-!p1.png | Cable Reduction
-!p2.png | Modularity
-!p3.png | Orientation Flexibility
+!a.jpg | First
+!b.jpg | Second
+!c.jpg | Third
 ```
 
 Image captions are plain text. They do not have separate formatting syntax.
@@ -87,7 +87,7 @@ Images are cropped to fill their frame. Double-click an image in the rendered pa
 set its zoom and focal point; the renderer writes the result after `~`:
 
 ```
-!christ.jpg ~ 1.4 38 22 | Heidelberg
+!photo.jpg ~ 1.4 38 22 | Caption
 ```
 
 `~ zoom focalX focalY` — you rarely type this by hand.
@@ -164,14 +164,14 @@ blank line     vertical layout
 `@` introduces a modifier that applies to the slide itself.
 
 ```
-@bg !pills.jpg
+@bg !backdrop.jpg
 
-@footer 20250515 Myeongje Lee \
-2026. 06. 17
+@footer Your name \
+2026
 ```
 
-The `!` retains its meaning as an image reference: `!pills.jpg` places the image as an
-element, while `@bg !pills.jpg` uses it as the slide background. Everything following
+The `!` retains its meaning as an image reference: `!backdrop.jpg` places the image as an
+element, while `@bg !backdrop.jpg` uses it as the slide background. Everything following
 `@footer` becomes the footer content, and `\` breaks its lines like any other text.
 
 PpTex does not expose low-level styling properties such as `@color`, `@size`,
