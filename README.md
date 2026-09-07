@@ -7,7 +7,8 @@ visual styling is handled by the renderer.
 **→ [leemyeongje.github.io/pptex](https://leemyeongje.github.io/pptex/)**
 
 `index.html` is the reference renderer and editor — one self-contained file, no build
-step. Use the link above, or run it locally:
+step. Current version: **1.0** — see [CHANGELOG.md](CHANGELOG.md). Use the link above,
+or run it locally:
 
 ```
 python3 -m http.server 8000   # then open http://localhost:8000/
@@ -167,6 +168,9 @@ The `!` retains its meaning as an image reference: `!backdrop.jpg` places the im
 element, while `@bg !backdrop.jpg` uses it as the slide background. Everything following
 `@footer` becomes the footer content, and `\` breaks its lines like any other text.
 
+A modifier is enough to make a slide: `@footer` on its own gives an otherwise empty
+slide with the footer in its usual place.
+
 PpTex does not expose low-level styling properties such as `@color`, `@size`,
 `@margin`, or `@align`. These are determined by the renderer.
 
@@ -216,7 +220,7 @@ Opening a `.pptex` / `.txt` file edits **that file in place**, autosaving shortl
 each change. Dropping a text file onto the window opens it. Without a file open, work
 is kept in browser storage only — and a stored draft that is still an untouched sample
 is replaced by the current one, so a new sample is never shadowed by an old copy. The
-syntax panel has a **예시 문서 불러오기** button to load the sample deck at any time.
+syntax panel has a **Load the sample deck** button to load the sample deck at any time.
 
 The preview follows the caret: the slide your cursor is in stays in view as you type.
 

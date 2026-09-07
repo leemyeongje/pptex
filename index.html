@@ -28,6 +28,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
 .topbar{display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid var(--line);background:var(--panel);flex:none}
 .logo{font-weight:800;font-size:17px;letter-spacing:-.01em;margin-right:6px}
 .logo em{font-style:normal;color:var(--tx2);font-weight:600}
+.ver{font-size:11px;font-weight:600;color:var(--tx3);border:1px solid var(--line);border-radius:999px;padding:1px 7px;margin-right:4px}
 .fileinfo{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--tx2);min-width:0}
 .fileinfo .name{font-weight:600;color:#c9c9c9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
 .fileinfo .dot{width:6px;height:6px;border-radius:99px;background:#4a7a4a;flex:none}
@@ -81,7 +82,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
   padding:44px 56px 52px;
   --cap:17px; --capgap:8px; --tit:42px; --sub:42px; --body:26px; --figc:24px;
   --tit-lh:1.13; --body-lh:1.5;
-  /* 제목 블록에서 캡션이 차지하는 높이 (캡션이 없어도 자리는 늘 확보된다) */
+  /* height the caption takes in a title block (the slot is reserved even without one) */
   --capslot:calc(var(--cap) * 1.35 + var(--capgap));
   --rowgap:34px; --radius:26px;
 }
@@ -95,7 +96,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
 .slide.hasbg .bgimg::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.55) 0%,rgba(0,0,0,.18) 45%,rgba(0,0,0,.5) 100%)}
 .slide.hasbg > .body{position:relative;z-index:2}
 
-/* layout tree: 줄바꿈 = 가로(row), 빈 줄 = 세로(col) — 모든 깊이에서 동일 */
+/* layout tree: newline = row, blank line = col — the same at every depth */
 .body,.col{display:flex;flex-direction:column;min-width:0;min-height:0}
 .body{flex:1;gap:var(--rowgap)}
 .col{gap:var(--rowgap)}
@@ -107,7 +108,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
 .cell{display:flex;flex-direction:column;min-width:0}
 
 /* ---- title block ----
-   캡션 자리는 캡션이 없어도 항상 확보한다 → 제목의 위치·크기가 언제나 동일 */
+   the caption slot is reserved with or without a caption -> the title never moves */
 .row.multi > .cell.tblock{flex:0 0 38%}
 .s-cover .row.multi > .cell.tblock{flex:0 0 54%}
 .row.solo > .tblock{max-width:76%}
@@ -119,8 +120,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
 .tblock .subtitle{font-size:var(--sub);font-weight:700;line-height:1.16;color:#8f8f8f;margin-top:2px}
 .slide.hasbg .tblock .caption,.slide.hasbg .tblock .subtitle{color:#d8d8d8}
 
-/* 제목만 있는 슬라이드: 제목 자체가 슬라이드의 정확한 가운데.
-   캡션·부제는 흐름에서 빼서 제목 위치에 영향을 주지 않는다. */
+/* title-only slide: the title itself sits at the exact centre.
+   caption and subtitle are lifted out of the flow so they never shift it. */
 .s-statement .body{justify-content:center}
 .s-statement .row{justify-content:center}
 .s-statement .tblock{position:relative;text-align:center;flex:0 1 auto;max-width:88%;overflow:visible}
@@ -129,8 +130,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
 
 /* body text */
 .cell.text{font-size:var(--body);font-weight:600;line-height:var(--body-lh);letter-spacing:-.004em}
-/* 제목과 가로로 나란히 놓인 본문은 캡션 칸을 건너뛰고 제목의 윗단에 맞춘다.
-   line-height 로 생기는 위쪽 여백 차이까지 빼서 글자 윗선이 실제로 나란해진다. */
+/* body text beside a title skips the caption slot and aligns to the title's top edge.
+   the leading from line-height is subtracted too, so the optical top edges really line up. */
 .row.hastitle > .cell.text{
   margin-top:calc(var(--capslot)
                   + var(--tit) * (var(--tit-lh) - 1) / 2
@@ -142,25 +143,25 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
 .cell.list .item{display:flex;gap:22px;align-items:baseline;font-weight:800;letter-spacing:-.01em;line-height:1.42}
 .cell.list .no{color:#8f8f8f;font-weight:800;min-width:1.7em;flex:none}
 
-/* ---- image: squircle 로 크롭. 더블클릭하면 크롭 편집 ---- */
+/* ---- image: cropped to a squircle. double-click to edit the crop ---- */
 .cell.img{gap:14px}
 .imgbox{flex:1 1 auto;min-height:0;position:relative;overflow:hidden;
         border-radius:var(--radius);corner-shape:squircle;background:#151515}
-/* 사진은 흐름에서 빼서 상자 크기에 전혀 관여하지 않게 한다.
-   height:100% 인 채로 흐름에 남으면, 인쇄(페이지 분할) 레이아웃에서 이 퍼센트가
-   풀리지 않아 사진이 제 비율대로 부풀고 가로로 놓인 사진들의 높이가 어긋난다. */
+/* photos are lifted out of the flow so they add nothing to the box height.
+   left in the flow at height:100%, print (paginated) layout never resolves that
+   percentage: photos swell to their own ratio and side-by-side heights drift apart. */
 .imgbox img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
             object-position:var(--ox,50%) var(--oy,50%);
             transform:scale(var(--z,1));transform-origin:var(--ox,50%) var(--oy,50%)}
 .cell.img .figcap{flex:none;text-align:center;font-size:var(--figc);font-weight:600}
 
-/* 빈 자리 / 아직 없는 이미지 */
+/* empty slot / image not loaded yet */
 .ph{width:100%;height:100%;min-height:90px;border:1.5px dashed #4a4a4a;border-radius:var(--radius);
     corner-shape:squircle;background:#181818;color:#777;display:flex;flex-direction:column;gap:6px;
     align-items:center;justify-content:center;font-size:17px;font-weight:600;text-align:center;padding:12px}
 .ph .sub{font-size:14px;font-weight:500;color:#5a5a5a}
 
-/* 이미지만 있는 슬라이드 -> 여백 없이 꽉 */
+/* images only -> full bleed, no padding */
 .slide.bleed{padding:0;--radius:0px}
 .slide.bleed .body,.slide.bleed .col,.slide.bleed .row{gap:0}
 
@@ -169,7 +170,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
 .s-cover .s-footer,.s-statement .s-footer{left:64px}
 .slide.hasbg .s-footer{color:#e0e0e0}
 
-/* 미리보기에서만 보이는 편집 어포던스 (인쇄 제외) */
+/* editing affordances, preview only (never printed) */
 #preview .cell.img{cursor:pointer}
 #preview .cell.img .imgbox{outline:0 solid transparent;transition:outline-color .12s,outline-width .12s}
 #preview .cell.img.dropping .imgbox{outline:3px solid var(--accent);outline-offset:2px}
@@ -214,7 +215,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
 #print-root{display:none}
 @media print{
   @page{size:1280px 720px;margin:0}
-  /* 화면용 html,body{height:100%} 가 인쇄에서 페이지 나눔을 망가뜨린다 */
+  /* html,body{height:100%} is for the screen; it breaks pagination in print */
   html,body{width:1280px;height:auto;min-height:0;margin:0;padding:0;
             background:#fff;overflow:visible}
   .app,#help,#cropwrap{display:none !important}
@@ -224,7 +225,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
     page-break-after:always;break-after:page;
     page-break-inside:avoid;break-inside:avoid;
   }
-  /* 마지막 장 뒤에 빈 페이지가 붙지 않게 */
+  /* no blank page after the last slide */
   #print-root .slide:last-child{page-break-after:auto;break-after:auto}
 }
 </style>
@@ -234,6 +235,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
 <div class="app">
   <div class="topbar">
     <div class="logo">Pp<em>Tex</em></div>
+    <span class="ver" id="ver"></span>
     <div class="fileinfo nofile" id="fileinfo">
       <span class="dot"></span><span class="name" id="fileName">Untitled</span><span class="state" id="fileState"></span>
     </div>
@@ -412,9 +414,11 @@ Cables become tangled, and the experience becomes fragmented.</pre>
 <script>
 /* =========================================================
    PpTex — plain text -> slides
-   줄바꿈 = 가로, 빈 줄 = 세로, [ ] = 하나의 요소로 묶기.
-   규칙은 모든 깊이에서 동일하다.
+   newline = row, blank line = col, [ ] = bind several elements into one.
+   The rule is identical at every depth.
    ========================================================= */
+
+const VERSION = '1.0';
 
 const DEFAULT_SRC = `@footer Your name \\
 2026
@@ -482,7 +486,8 @@ A backslash breaks a line inside the same block.
 
 ---
 
-@footer Thank you
+@footer Thank you \\
+Made with PpTex ${VERSION}
 # Thank you
 `;
 
@@ -492,9 +497,9 @@ const preview   = $('#preview');
 const printRoot = $('#print-root');
 const imgstrip  = $('#imgstrip');
 const images    = new Map();   // filename -> objectURL
-const IMG_EXT   = /\.(png|jpe?g|gif|webp|avif|svg|bmp)$/i;   /* 브라우저가 그릴 수 있는 것만 */
+const IMG_EXT   = /\.(png|jpe?g|gif|webp|avif|svg|bmp)$/i;   /* only what a browser can draw */
 
-/* 소스에는 파일명만 적지만, 'images/photo.jpg' 처럼 경로가 섞여도 찾아준다 */
+/* the source names files only, but a path such as 'images/photo.jpg' resolves too */
 function imageURL(name){
   if (!name) return null;
   return images.get(name) || images.get(name.split('/').pop()) || null;
@@ -513,11 +518,12 @@ function clearImages(){
 const STORE_KEY = 'pptex.draft';
 const LEGACY_KEYS = ['pptex.src'];
 
-/* 지금까지 기본으로 실려 있던 예시 문서들의 지문.
-   임시 저장본이 '손대지 않은 예시' 이면 새 예시로 갈아끼우고,
-   직접 쓴 내용이면 그대로 살린다. */
+/* fingerprints of every sample deck that has shipped as the default.
+   a stored draft that is still an untouched sample is replaced by the current one,
+   while anything the user actually wrote is kept. */
 const SAMPLE_FINGERPRINTS = new Set([
-  '1l0vssg-1087',   // 첫 예시 (실제 발표 자료에서 가져왔던 것)
+  '1l0vssg-1087',   // the first sample (taken from a real deck)
+  '1le9cue-769',    // before 1.0 (no version line on the last slide)
 ]);
 
 function fingerprint(t){
@@ -527,8 +533,12 @@ function fingerprint(t){
   return h.toString(36) + '-' + s.length;
 }
 
+/* the sample's version line changes with each release, so drop it before fingerprinting */
+function unversion(t){ return String(t).replace(/Made with PpTex [\d.]+/g, 'Made with PpTex'); }
+
 function isSample(t){
-  return fingerprint(t) === fingerprint(DEFAULT_SRC) || SAMPLE_FINGERPRINTS.has(fingerprint(t));
+  return fingerprint(unversion(t)) === fingerprint(unversion(DEFAULT_SRC)) ||
+         SAMPLE_FINGERPRINTS.has(fingerprint(t));
 }
 
 function loadDraft(){
@@ -540,7 +550,7 @@ function loadDraft(){
     }
   }
   if (v == null || !v.trim() || isSample(v)) return DEFAULT_SRC;
-  try { localStorage.setItem(STORE_KEY, v); } catch(_){}   /* 옛 키에서 옮겨온 내용을 바로 붙든다 */
+  try { localStorage.setItem(STORE_KEY, v); } catch(_){}   /* hold on to what was migrated from the old key */
   return v;
 }
 
@@ -548,15 +558,15 @@ function loadDraft(){
    1. PARSE
    ========================================================= */
 
-/* 소스를 슬라이드 덩어리로 나누되, 각 덩어리의 줄 범위를 기억한다
-   (커서 <-> 슬라이드 동기화와 소스 되쓰기에 쓰인다) */
+/* split the source into slide chunks, remembering each chunk's line range
+   (used by caret <-> slide sync and by write-back) */
 function splitChunks(src){
   const lines = src.split('\n');
   const chunks = [];
   let cur = { from:0, lines:[] };
   lines.forEach((ln, i) => {
     if (/^\s*-{3,}\s*$/.test(ln)){
-      cur.to = i;                 // 구분선은 앞 슬라이드 범위에 포함
+      cur.to = i;                 // the divider belongs to the slide above it
       chunks.push(cur);
       cur = { from:i+1, lines:[] };
     } else {
@@ -590,7 +600,7 @@ function parseDoc(src){
   return { slides };
 }
 
-/* 줄 끝의 \ 는 같은 요소를 다음 줄로 잇는다. 각 요소가 시작한 소스 줄 번호를 기억한다. */
+/* a trailing \ continues the same element on the next line. each element remembers the source line it began on. */
 function joinContinuations(lines, from){
   const out = [];
   lines.forEach((raw, i) => {
@@ -608,7 +618,7 @@ function joinContinuations(lines, from){
   return out;
 }
 
-/* !name ~ 확대 초점X 초점Y | 캡션 */
+/* !name ~ zoom focalX focalY | caption */
 function parseImg(rest){
   const bar = rest.indexOf('|');
   let left = bar >= 0 ? rest.slice(0, bar) : rest;
@@ -643,7 +653,7 @@ function parseCell(text){
   return { k:'text', lines:text.split('\n') };
 }
 
-/* 붙어 있는 ^ / # / ## 는 하나의 제목 덩어리로, 붙어 있는 1. 2. 3. 은 하나의 목록으로 */
+/* adjacent ^ / # / ## become one title block, adjacent 1. 2. 3. become one list */
 function mergeOrPush(row, c){
   const last = row.children.length ? row.children[row.children.length - 1] : null;
   const open = (last && !last.axis) ? last : null;
@@ -666,13 +676,13 @@ function parseSlide(rawLines, from){
       const name = m[1], arg = m[2].trim();
       if (name === 'bg')     { s.bg = arg.replace(/^!\s*/, '').trim(); continue; }
       if (name === 'footer') { s.footer = arg; continue; }
-      continue;                                   // 그 밖의 @ 는 PpTex 에 없다
+      continue;                                   // no other @ exists in PpTex
     }
     items.push(it);
   }
 
   const root  = { axis:'col', children:[] };
-  const stack = [root];                           // 열려 있는 컨테이너 (root / group)
+  const stack = [root];                           // open containers (root / group)
   const curRow = () => {
     const c = stack[stack.length - 1];
     if (!c.open){ c.open = { axis:'row', children:[] }; c.children.push(c.open); }
@@ -680,7 +690,7 @@ function parseSlide(rawLines, from){
   };
 
   for (const it of items){
-    if (it.blank){ stack[stack.length - 1].open = null; continue; }   // 빈 줄 = 세로
+    if (it.blank){ stack[stack.length - 1].open = null; continue; }   // blank line = col
     if (it.text === '['){
       const g = { axis:'col', children:[] };
       curRow().children.push(g);
@@ -698,11 +708,11 @@ function parseSlide(rawLines, from){
 
   prune(root);
   s.root = root;
-  if (!root.children.length && !s.bg) return null;
+  if (!root.children.length && !s.bg && !s.footer) return null;   /* @footer alone still makes a slide */
   return s;
 }
 
-/* 빈 묶음은 버리고, 자식이 하나뿐인 묶음은 접는다 */
+/* drop empty groups, collapse groups holding a single child */
 function prune(node){
   delete node.open;
   node.children = node.children.filter(c => {
@@ -727,7 +737,7 @@ function hasMedia(node){
   return node.axis ? node.children.some(hasMedia) : node.k === 'img';
 }
 
-/* 스타일 단계는 렌더러가 정한다 */
+/* the renderer decides the type scale */
 function inferScale(s){
   const cells = allCells(s.root);
   s.bleed = cells.length > 0 && cells.every(c => c.k === 'img') && !s.bg;
@@ -810,7 +820,7 @@ function renderCell(c, live){
   return n;
 }
 
-/* 트리 -> DOM. 세로 묶음에서는 이미지가 든 자식만 남은 높이를 나눠 갖는다 */
+/* tree -> DOM. in a col, only children holding an image share the leftover height */
 function renderNode(node, isRoot, live){
   const n = el('div', isRoot ? 'body' : node.axis);
   if (node.axis === 'row'){
@@ -840,7 +850,7 @@ function renderSlide(s, live){
 }
 
 /* =========================================================
-   3. 소스 되쓰기 (미리보기에서 한 조작을 텍스트에 반영)
+   3. WRITE-BACK (an edit made in the preview goes back into the text)
    ========================================================= */
 
 function sourceLine(idx){
@@ -854,7 +864,7 @@ function writeLine(idx, text){
   const indent = (lines[idx].match(/^\s*/) || [''])[0];
   lines[idx] = indent + text;
   editor.value = lines.join('\n');
-  let pos = 0;                       /* 고친 줄 끝으로 커서를 옮겨 둔다 */
+  let pos = 0;                       /* park the caret at the end of the line we rewrote */
   for (let k = 0; k < idx; k++) pos += lines[k].length + 1;
   editor.setSelectionRange(pos + lines[idx].length, pos + lines[idx].length);
   touch();
@@ -892,7 +902,7 @@ function wireImageCell(cell, c){
 }
 
 /* =========================================================
-   4. 크롭 편집
+   4. CROP EDITOR
    ========================================================= */
 
 let cropState = null;
@@ -944,7 +954,7 @@ function closeCrop(){ $('#cropwrap').classList.remove('open'); cropState = null;
     const img = frame.querySelector('img');
     const w = frame.clientWidth, h = frame.clientHeight;
     const nat = img.naturalWidth / img.naturalHeight, box = w / h;
-    const rw = nat > box ? h * nat : w;            /* cover 로 그려진 크기 */
+    const rw = nat > box ? h * nat : w;            /* the size it is drawn at under cover */
     const rh = nat > box ? h : w / nat;
     const ox = Math.max(rw * cropState.crop.z - w, 1);
     const oy = Math.max(rh * cropState.crop.z - h, 1);
@@ -1000,7 +1010,7 @@ function scheduleRender(){ clearTimeout(renderTimer); renderTimer = setTimeout(r
 
 function render(){
   const doc = parseDoc(editor.value);
-  const keepScroll = preview.scrollTop;   /* 타이핑 중 미리보기가 튀지 않도록 */
+  const keepScroll = preview.scrollTop;   /* keep the preview from jumping while typing */
   SLIDES = doc.slides;
   preview.innerHTML = '';
   printRoot.innerHTML = '';
@@ -1081,8 +1091,8 @@ function syncFromCursor(fromRender){
   const ir = item.getBoundingClientRect();
   const outOfView = ir.top < pr.top + 4 || ir.bottom > pr.bottom - 4;
 
-  /* 다시 그릴 때는 에디터를 실제로 만지고 있을 때만 따라간다.
-     (이미지를 끌어다 놓거나 추가했을 뿐인데 미리보기가 튀는 것을 막는다) */
+  /* on a re-render, follow the caret only while the editor is really in use.
+     (dropping or adding an image should not make the preview jump) */
   if (fromRender && document.activeElement !== editor) return;
   if (changed && !fromRender)      preview.scrollTo({ top:target, behavior:'smooth' });
   else if (changed || outOfView)   preview.scrollTop = target;
@@ -1111,7 +1121,7 @@ function jumpToSlide(i){
   jumpToLine(Math.min(k, src.length - 1), i);
 }
 
-/* textarea 안에서 특정 위치의 세로 오프셋 (mirror 로 측정) */
+/* vertical offset of a position inside the textarea (measured with a mirror) */
 function caretTop(index){
   const cs = getComputedStyle(editor);
   const m = document.createElement('div');
@@ -1150,7 +1160,7 @@ $('#btnFollow').addEventListener('click', e => {
    6. IMAGES
    ========================================================= */
 
-/* 이미지 폴더 상태를 보여 주고, 눌러서 폴더를 연결하는 칩 */
+/* the chip that shows the image-folder state and links a folder when clicked */
 function dirChip(){
   const chip = el('button','chip dir');
   chip.appendChild(el('span','ico','\uD83D\uDCC1'));
@@ -1208,9 +1218,9 @@ function isImageFile(f){
   return /^image\//.test(f.type) || IMG_EXT.test(f.name);
 }
 
-/* 그림을 등록하고, 이미지 폴더가 연결돼 있으면 거기에 파일로도 남긴다.
-   폴더에 이미 같은 그림이 있으면 다시 쓰지 않고, 이름만 겹치면 -1, -2 를 붙인다.
-   소스에 적어야 할 최종 파일명들을 돌려준다. */
+/* register the pictures and, if an image folder is linked, write them there as files too.
+   an identical picture already in the folder is reused; a clashing name gets -1, -2.
+   returns the final filenames to write into the source. */
 async function addImages(files, quiet){
   const names = [];
   for (const f of files){
@@ -1231,7 +1241,7 @@ async function addImages(files, quiet){
     putImage(name, f);
     names.push(name);
   }
-  if (names.length){ refreshStrip(); if (!quiet) render(); }   /* quiet: 곧 이어질 render 에 맡긴다 */
+  if (names.length){ refreshStrip(); if (!quiet) render(); }   /* quiet: leave it to the render that follows */
   return names;
 }
 
@@ -1250,7 +1260,7 @@ function flashHint(msg){
 }
 
 /* =========================================================
-   7. 파일 (진짜 편집기)
+   7. FILES (a real editor)
    ========================================================= */
 
 const CAN_FS = typeof window.showOpenFilePicker === 'function';
@@ -1320,7 +1330,7 @@ async function adoptHandle(h){
   const f = await h.getFile();
   clearImages();
   setSource(await f.text());
-  await restoreDir(h);       /* 전에 연결해 둔 이미지 폴더가 있으면 되살린다 */
+  await restoreDir(h);       /* bring back the image folder this deck was linked to, if any */
 }
 
 async function newFile(){
@@ -1341,7 +1351,7 @@ $('#btnNew').addEventListener('click', newFile);
 $('#btnOpen').addEventListener('click', openFile);
 $('#btnSave').addEventListener('click', () => saveFile(false));
 
-$('#fileSrc').addEventListener('change', e => {          /* FS API 없는 브라우저 */
+$('#fileSrc').addEventListener('change', e => {          /* browsers without the FS API */
   const f = e.target.files[0]; if (!f) return;
   const r = new FileReader();
   r.onload = () => setSource(r.result);
@@ -1368,12 +1378,12 @@ $('#btnSample').addEventListener('click', () => {
   $('#help').classList.remove('open');
 });
 
-/* 창 전체 드롭: 이미지는 등록만, 텍스트 파일은 열기 */
+/* drop anywhere in the window: images are registered, text files opened */
 ['dragenter','dragover'].forEach(ev => window.addEventListener(ev, e => e.preventDefault()));
 window.addEventListener('drop', async e => {
   e.preventDefault();
   if (!e.dataTransfer) return;
-  const files = [...e.dataTransfer.files];          /* await 뒤에는 dataTransfer 가 비므로 먼저 붙든다 */
+  const files = [...e.dataTransfer.files];          /* dataTransfer is empty after an await, so grab it first */
   for (const item of e.dataTransfer.items || []){
     if (item.kind !== 'file') continue;
     const f = item.getAsFile();
@@ -1406,25 +1416,25 @@ window.addEventListener('beforeunload', e => {
 });
 
 /* =========================================================
-   8. 이미지 폴더 (문서 옆에 두고, 다시 열어도 그대로)
+   8. IMAGE FOLDER (kept beside the deck, and restored on reopen)
    =========================================================
 
-   문서가 있는 폴더를 한 번 연결해 두면
-     · 그 안의 이미지 폴더(images/ 등)에 있는 그림을 열 때마다 자동으로 불러오고
-     · 새로 끌어다 놓은 그림은 그 폴더에 파일로 남긴다.
-   연결한 폴더는 IndexedDB 에 문서와 짝지어 기억해 두므로,
-   편집기를 닫았다 같은 문서를 다시 열면 그림이 그대로 미리보기에 뜬다.        */
+   Link the folder the deck lives in once and
+     · pictures in its image folder (images/ and the like) load every time the deck is opened,
+     · pictures dropped in are written into that folder as files.
+   The linked folder is paired with the deck in IndexedDB, so closing the editor
+   and reopening the same deck brings its pictures straight back to the preview.  */
 
 const CAN_DIR = typeof window.showDirectoryPicker === 'function';
 const IMG_DIR_NAMES = ['images','image','img','assets','media','pics','그림','이미지'];
 
-let baseDir    = null;   /* 사용자가 고른 폴더 (보통 문서가 있는 폴더) */
-let imgDir     = null;   /* 그림을 읽고 쓰는 폴더 */
-let pendingDir = null;   /* 기억해 두었지만 아직 접근 허가를 못 받은 폴더 */
+let baseDir    = null;   /* the folder the user picked (usually the deck's own) */
+let imgDir     = null;   /* the folder pictures are read from and written to */
+let pendingDir = null;   /* remembered, but not granted access yet */
 
 function clearDir(){ baseDir = imgDir = pendingDir = null; }
 
-/* ---------- 문서 ↔ 폴더 짝을 기억해 두는 자리 ---------- */
+/* ---------- where the deck <-> folder pairing is kept ---------- */
 
 const LINK_DB = 'pptex', LINK_STORE = 'links';
 
@@ -1455,7 +1465,7 @@ async function rememberDir(){
     } catch(_){}
   }
   await writeLink({ file:fileHandle, dir:baseDir });
-  const all = await readLinks();                       /* 오래된 기록은 20개까지만 */
+  const all = await readLinks();                       /* only the 20 most recent are kept */
   for (const r of all.slice(0, Math.max(0, all.length - 20))) await dropLink(r.id);
 }
 
@@ -1469,18 +1479,18 @@ async function restoreDir(h){
   }
 }
 
-/* ---------- 폴더 붙이기 ---------- */
+/* ---------- attaching a folder ---------- */
 
 async function grant(handle, mode, ask){
   if (!handle) return false;
   try {
     if (await handle.queryPermission({ mode }) === 'granted') return true;
-    /* 되살릴 때는 클릭 직후가 아니라 허가를 물을 수 없을 수 있다 — 그러면 칩으로 미룬다 */
+    /* restoring is not always right after a click, so permission may not be askable — defer to the chip */
     return ask && await handle.requestPermission({ mode }) === 'granted';
   } catch(_){ return false; }
 }
 
-/* 고른 폴더 안에서 그림이 실제로 사는 곳을 정한다 */
+/* decide where pictures actually live inside the folder we were given */
 async function chooseImgDir(dir, deckInside){
   let named = null, loose = false;
   try {
@@ -1490,9 +1500,9 @@ async function chooseImgDir(dir, deckInside){
       } else if (!loose && IMG_EXT.test(name)) loose = true;
     }
   } catch(_){}
-  if (named) return named;              /* images/ 같은 그림 폴더가 이미 있다 */
-  if (loose || !deckInside) return dir; /* 그림이 문서 옆에 있거나, 그림 폴더를 직접 골랐다 */
-  return null;                          /* 아직 없다 — 처음 끌어다 놓을 때 images/ 를 만든다 */
+  if (named) return named;              /* an image folder such as images/ is already there */
+  if (loose || !deckInside) return dir; /* pictures sit beside the deck, or the image folder itself was picked */
+  return null;                          /* none yet — images/ is created on the first drop */
 }
 
 async function attachDir(dir, ask){
@@ -1519,8 +1529,8 @@ async function ensureImgDir(){
   return imgDir;
 }
 
-/* 폴더에 있는 그림을 전부 등록한다. 그림 폴더가 따로 있어도
-   문서 옆에 놓인 그림까지 같이 훑어, 예전 문서도 그대로 미리보기가 된다. */
+/* register every picture in the folder. even with a separate image folder,
+   pictures lying beside the deck are swept up too, so older decks still preview. */
 async function scanImgDir(){
   let n = 0;
   const dirs = [imgDir, baseDir].filter((d, i, a) => d && a.indexOf(d) === i);
@@ -1538,7 +1548,7 @@ async function scanImgDir(){
   return n;
 }
 
-/* 폴더에서 쓸 이름을 고른다 — 같은 그림이면 그대로 쓰고, 이름만 겹치면 -1, -2 를 붙인다 */
+/* pick the name to use in the folder — the same picture is reused, a clashing name gets -1, -2 */
 async function claimName(dir, file){
   const dot  = file.name.lastIndexOf('.');
   const stem = dot > 0 ? file.name.slice(0, dot) : file.name;
@@ -1558,17 +1568,17 @@ async function claimName(dir, file){
 async function linkDir(){
   if (!CAN_DIR) return flashHint('This browser cannot open folders');
   const opts = { mode:'readwrite' };
-  if (fileHandle) opts.startIn = fileHandle;     /* 문서가 있는 폴더에서 시작한다 */
+  if (fileHandle) opts.startIn = fileHandle;     /* start in the folder the deck is in */
   let dir;
   try { dir = await showDirectoryPicker(opts); } catch(_){ return; }
   if (await attachDir(dir, true)) flashHint('Image folder: ' + (imgDir ? imgDir.name : dir.name));
 }
 
 /* =========================================================
-   9. PPTX 내보내기
-   슬라이드를 화면 밖에 1280x720 실제 크기로 한 번 그려 두고,
-   그 자리에서 잰 좌표를 그대로 OOXML 도형으로 옮긴다.
-   레이아웃을 다시 구현하지 않으므로 미리보기와 어긋나지 않는다.
+   9. PPTX EXPORT
+   Each slide is drawn once off-screen at its real 1280x720 size, and the
+   coordinates measured there become OOXML shapes as they are.
+   Layout is never re-implemented, so an export cannot drift from the preview.
    ========================================================= */
 
 const EMU  = 9525;                       /* 1px(96dpi) */
@@ -1645,7 +1655,7 @@ async function zipBlob(entries){
                   { type:'application/vnd.openxmlformats-officedocument.presentationml.presentation' });
 }
 
-/* ---------- 화면에서 값 읽기 ---------- */
+/* ---------- reading values off the screen ---------- */
 
 function cssColor(v){
   const m = String(v).match(/-?[\d.]+/g);
@@ -1659,7 +1669,7 @@ function numProp(cs, name, dflt){
   return isFinite(v) ? v : dflt;
 }
 
-/* <br> 로 끊어 문단 목록을 만든다 */
+/* split on <br> into a list of paragraphs */
 function textLines(node){
   const out = []; let cur = '';
   node.childNodes.forEach(n => {
@@ -1670,8 +1680,8 @@ function textLines(node){
   return out;
 }
 
-/* 화면에서 저절로 접힌 줄이 없으면 PowerPoint 에서도 접지 않게 한다.
-   (글꼴이 없어 글자폭이 달라져도 줄 수가 늘지 않는다) */
+/* text that does not wrap on screen is exported with wrapping off.
+   (a missing font changes letterforms, never the number of lines) */
 function lineCount(node){
   try {
     const r = document.createRange();
@@ -1680,7 +1690,7 @@ function lineCount(node){
   } catch(_){ return Infinity; }
 }
 
-/* object-fit:cover + object-position + scale() 을 srcRect 로 옮긴다 */
+/* object-fit:cover + object-position + scale() becomes srcRect */
 function srcRect(img){
   const bw = img.offsetWidth, bh = img.offsetHeight;
   const iw = img.naturalWidth  || bw, ih = img.naturalHeight || bh;
@@ -1702,27 +1712,27 @@ function srcRect(img){
            r: cl((left + cw - bw) / cw), b: cl((top + ch - bh) / ch) };
 }
 
-/* ---------- 도형 ---------- */
+/* ---------- shapes ---------- */
 
 let shapeId = 1;
 const xfrm = b => `<a:xfrm><a:off x="${emu(b.x)}" y="${emu(b.y)}"/><a:ext cx="${emu(b.w)}" cy="${emu(b.h)}"/></a:xfrm>`;
 
-/* CSS 의 corner-shape:squircle 은 superellipse(2), 곧 |u|⁴+|v|⁴=1 이다.
-   PowerPoint 의 roundRect 는 원호라서 이 모양이 나오지 않는다 — 모서리 하나를
-   3차 베지에 세 개로 근사한 custGeom 을 직접 그려 미리보기·PDF 와 같게 맞춘다.
-   (반지름의 0.1% 이내 오차. 값은 모서리 점에서 잰 (p,q) 배수) */
+/* CSS corner-shape:squircle is superellipse(2), that is |u|⁴+|v|⁴=1.
+   PowerPoint's roundRect is a circular arc and cannot draw it — each corner is
+   approximated by three cubic Béziers in a custGeom, matching the preview and the PDF.
+   (within 0.1% of the radius. the values are (p,q) multiples measured at the corner) */
 const SQUIRCLE = [
   [0.563731, 0,        0.430374, 0.009083, 0.292893, 0.069395],
   [0.163514, 0.126153, 0.103028, 0.216227, 0.069395, 0.292893],
   [0.009083, 0.430374, 0,        0.563731, 0,        1       ]
 ];
 
-/* 시계 방향으로 네 모서리: 꼭짓점, 들어오는 변 방향, 나가는 변 방향 */
+/* the four corners clockwise: vertex, incoming edge direction, outgoing edge direction */
 const CORNERS = [
-  [1, 0,  1,  0,  0,  1],   /* 우상 */
-  [1, 1,  0,  1, -1,  0],   /* 우하 */
-  [0, 1, -1,  0,  0, -1],   /* 좌하 */
-  [0, 0,  0, -1,  1,  0]    /* 좌상 */
+  [1, 0,  1,  0,  0,  1],   /* top right */
+  [1, 1,  0,  1, -1,  0],   /* bottom right */
+  [0, 1, -1,  0,  0, -1],   /* bottom left */
+  [0, 0,  0, -1,  1,  0]    /* top left */
 ];
 
 function geom(radius, b){
@@ -1775,7 +1785,7 @@ function txSp(b, paras, opt){
          `<a:noAutofit/></a:bodyPr><a:lstStyle/>${paras}</p:txBody></p:sp>`;
 }
 
-/* 여러 줄 텍스트 (제목·본문·캡션·꼬리말) */
+/* multi-line text (title, body, caption, footer) */
 function textShape(node, b){
   const f = fontOf(node);
   const lines = textLines(node);
@@ -1787,7 +1797,7 @@ function textShape(node, b){
   return txSp(b, paras, { nowrap: lineCount(node) <= lines.length });
 }
 
-/* 번호 목록: 번호는 회색, 본문은 매달린 들여쓰기 + 탭 */
+/* numbered list: grey number, hanging indent + tab for the text */
 function listShape(node, b){
   const f = fontOf(node);
   const fs = parseFloat(getComputedStyle(node).fontSize) || 26;
@@ -1821,7 +1831,7 @@ function picShape(rid, crop, radius, b){
          `<p:spPr>${xfrm(b)}${geom(radius, b)}</p:spPr></p:pic>`;
 }
 
-/* 아직 채우지 않은 이미지 자리 */
+/* an image slot not filled in yet */
 function slotShape(ph, radius, b){
   const cs   = getComputedStyle(ph);
   const line = cssColor(cs.borderTopColor).hex;
@@ -1839,7 +1849,7 @@ function slotShape(ph, radius, b){
          `<a:noAutofit/></a:bodyPr><a:lstStyle/>${paras}</p:txBody></p:sp>`;
 }
 
-/* 배경 사진 위에 덮이는 그라디언트 (.slide.hasbg .bgimg::after) */
+/* the gradient laid over a background photo (.slide.hasbg .bgimg::after) */
 function scrimShape(b){
   const stop = (pos, a) => `<a:gs pos="${pos}"><a:srgbClr val="000000"><a:alpha val="${a}"/></a:srgbClr></a:gs>`;
   return `<p:sp><p:nvSpPr><p:cNvPr id="${++shapeId}" name="Scrim ${shapeId}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>` +
@@ -1849,7 +1859,7 @@ function scrimShape(b){
          `<p:txBody><a:bodyPr/><a:lstStyle/><a:p/></p:txBody></p:sp>`;
 }
 
-/* ---------- 슬라이드 한 장 ---------- */
+/* ---------- one slide ---------- */
 
 const PICK = '.bgimg, .cell.img > .imgbox, .tblock > .caption:not(.empty), .tblock > .title, ' +
              '.tblock > .subtitle, .cell.text, .cell.img > .figcap, .cell.list, .s-footer';
@@ -1885,7 +1895,7 @@ function slideShapes(slideEl, ridOf){
   return out;
 }
 
-/* ---------- 패키지 ---------- */
+/* ---------- package ---------- */
 
 const NS = 'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" ' +
            'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" ' +
@@ -1942,11 +1952,11 @@ function layoutXml(){
     '</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sldLayout>';
 }
 
-/* ---------- 이미지 준비 ---------- */
+/* ---------- preparing images ---------- */
 
 const KEEP = { 'image/png':'png', 'image/jpeg':'jpg', 'image/gif':'gif' };
 
-/* PowerPoint 가 못 읽는 형식(webp, avif, svg …)은 png 로 바꿔 넣는다 */
+/* formats PowerPoint cannot read (webp, avif, svg …) go in as png */
 async function pptxImage(url){
   const blob = await (await fetch(url)).blob();
   const ext = KEEP[blob.type];
@@ -1960,13 +1970,13 @@ async function pptxImage(url){
   return { ext:'png', data: new Uint8Array(await png.arrayBuffer()) };
 }
 
-/* ---------- 내보내기 ---------- */
+/* ---------- export ---------- */
 
 async function buildPptx(){
   const doc = parseDoc(editor.value);
   if (!doc.slides.length) throw new Error('There are no slides');
 
-  /* 화면 밖에 실제 크기로 한 번 그린다 */
+  /* draw once off-screen at real size */
   const stage = el('div');
   stage.style.cssText = 'position:fixed;left:-20000px;top:0;width:1280px;visibility:hidden;pointer-events:none';
   doc.slides.forEach(s => stage.appendChild(renderSlide(s, false)));
@@ -1974,13 +1984,13 @@ async function buildPptx(){
 
   try {
     try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch(_){}
-    /* decode() 는 화면 밖 이미지에서 영영 끝나지 않는 경우가 있다. 로드 여부만 기다린다 */
+    /* decode() can hang forever on an off-screen image. wait for load only. */
     await Promise.all([...stage.querySelectorAll('img')].map(i => i.complete ? null :
       new Promise(r => { i.addEventListener('load', r, { once:true });
                          i.addEventListener('error', r, { once:true });
                          setTimeout(r, 4000); })));
 
-    /* 실제로 쓰인 이미지만 모은다 */
+    /* collect only the images actually used */
     const used = [...new Set([...stage.querySelectorAll('img')]
       .map(i => i.alt).filter(n => n && imageURL(n)))];
     const media = new Map();
@@ -1992,7 +2002,7 @@ async function buildPptx(){
     shapeId = 1;
     const files = [], exts = new Set();
     const slideXmls = [...stage.children].map((slideEl, i) => {
-      const rels = new Map();                     /* rId1 은 늘 레이아웃, 이미지는 rId2 부터 */
+      const rels = new Map();                     /* rId1 is always the layout, images start at rId2 */
       const ridOf = name => {
         const m = media.get(name) || media.get(String(name).split('/').pop());
         if (!m) return null;
@@ -2000,7 +2010,7 @@ async function buildPptx(){
         return rels.get(m.part);
       };
       const shapes = slideShapes(slideEl, ridOf);
-      /* 슬라이드마다 레이아웃 관계가 반드시 있어야 PowerPoint 가 파일을 연다 */
+      /* every slide needs a layout relationship or PowerPoint will not open the file */
       const relXml = XML + RELNS +
         `<Relationship Id="rId1" Type="${REL}slideLayout" Target="../slideLayouts/slideLayout1.xml"/>` +
         [...rels].map(([part, rid]) =>
@@ -2013,7 +2023,7 @@ async function buildPptx(){
     media.forEach(m => exts.add(m.ext));
 
     const n = slideXmls.length;
-    /* OPC 는 [Content_Types].xml 이 압축 파일의 첫 항목이어야 한다 */
+    /* OPC requires [Content_Types].xml to be the first entry in the zip */
     put('[Content_Types].xml', XML +
       '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
       '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
@@ -2079,7 +2089,7 @@ async function exportPptx(){
     if (typeof window.showSaveFilePicker === 'function'){
       let h;
       try { h = await showSaveFilePicker({ suggestedName:name, types:PPTX_TYPES }); }
-      catch(_){ return; }                      /* 사용자가 취소 */
+      catch(_){ return; }                      /* the user cancelled */
       const w = await h.createWritable();
       await w.write(blob); await w.close();
     } else {
@@ -2100,6 +2110,7 @@ async function exportPptx(){
 $('#btnPptx').addEventListener('click', exportPptx);
 
 /* ---------- boot ---------- */
+$('#ver').textContent = VERSION;
 editor.value = loadDraft();
 editor.setSelectionRange(0, 0);
 setFileUI();
