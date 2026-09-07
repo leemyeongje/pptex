@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PpTex — 텍스트로 만드는 프레젠테이션</title>
+<title>PpTex — presentations written as text</title>
 <style>
 /* ---------- Freesentation ---------- */
 @font-face{font-family:'Freesentation';font-weight:400;font-style:normal;src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2404@1.0/Freesentation-4Regular.woff2') format('woff2');font-display:swap}
@@ -235,15 +235,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
   <div class="topbar">
     <div class="logo">Pp<em>Tex</em></div>
     <div class="fileinfo nofile" id="fileinfo">
-      <span class="dot"></span><span class="name" id="fileName">제목 없음</span><span class="state" id="fileState"></span>
+      <span class="dot"></span><span class="name" id="fileName">Untitled</span><span class="state" id="fileState"></span>
     </div>
     <div class="spacer"></div>
-    <button class="btn" id="btnNew">새 파일</button>
-    <button class="btn" id="btnOpen">열기</button>
-    <button class="btn" id="btnSave">저장</button>
-    <button class="btn toggle on" id="btnFollow" title="커서가 있는 슬라이드를 따라 미리보기를 스크롤합니다">커서 따라가기</button>
-    <button class="btn" id="btnImgs">이미지 추가</button>
-    <button class="btn" id="btnHelp">문법</button>
+    <button class="btn" id="btnNew">New</button>
+    <button class="btn" id="btnOpen">Open</button>
+    <button class="btn" id="btnSave">Save</button>
+    <button class="btn toggle on" id="btnFollow" title="Scroll the preview to the slide the caret is on">Follow caret</button>
+    <button class="btn" id="btnImgs">Add images</button>
+    <button class="btn" id="btnHelp">Syntax</button>
     <button class="btn" id="btnPptx">PPTX</button>
     <button class="btn primary" id="btnPdf">PDF</button>
     <input type="file" id="fileSrc" accept=".pptex,.txt,.md,text/plain" hidden>
@@ -264,76 +264,76 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
 
 <div id="cropwrap">
   <div class="cropbox">
-    <h3>이미지 맞추기 <span id="cropName"></span></h3>
+    <h3>Fit image <span id="cropName"></span></h3>
     <div id="cropstage"><div id="cropframe"></div></div>
     <div class="croprow">
-      <span>확대</span>
+      <span>Zoom</span>
       <input type="range" id="cropZoom" min="100" max="400" step="1" value="100">
       <span class="cropval" id="cropVal"></span>
     </div>
-    <div class="croprow"><span style="color:var(--tx3)">이미지를 끌어서 초점을 옮기고, 휠로 확대합니다.</span></div>
+    <div class="croprow"><span style="color:var(--tx3)">Drag the image to move the focal point, scroll to zoom.</span></div>
     <div class="cropbtns">
-      <button class="btn" id="cropReset">초기화</button>
-      <button class="btn" id="cropCancel">취소</button>
-      <button class="btn primary" id="cropApply">적용</button>
+      <button class="btn" id="cropReset">Reset</button>
+      <button class="btn" id="cropCancel">Cancel</button>
+      <button class="btn primary" id="cropApply">Apply</button>
     </div>
   </div>
 </div>
 
 <aside id="help">
-  <button class="close" id="btnHelpClose" aria-label="닫기">×</button>
-  <h2>PpTex 문법</h2>
-  <p>무엇이 슬라이드에 있고 요소들이 <b>공간적으로 어떤 관계</b>인지만 적습니다. 색·크기·여백 같은 스타일은 렌더러가 정합니다.</p>
-  <p style="margin-top:12px"><button class="btn" id="btnSample">예시 문서 불러오기</button></p>
+  <button class="close" id="btnHelpClose" aria-label="Close">×</button>
+  <h2>PpTex syntax</h2>
+  <p>You write only what is on the slide and <b>how the pieces sit next to each other</b>. Colour, size and spacing are the renderer's business.</p>
+  <p style="margin-top:12px"><button class="btn" id="btnSample">Load the sample deck</button></p>
 
-  <h3>1. 슬라이드</h3>
-  <pre># 첫 슬라이드
-내용
+  <h3>1. Slides</h3>
+  <pre># First slide
+Body
 ---
-# 둘째 슬라이드
-내용</pre>
+# Second slide
+Body</pre>
 
-  <h3>2. 글의 계층</h3>
+  <h3>2. Text levels</h3>
   <pre>^ 01
 # Section Title
 ## Subtitle
 Body text sits beside the title block.</pre>
   <table>
-    <tr><td>^</td><td>캡션 (제목 위 작은 글씨)</td></tr>
-    <tr><td>#</td><td>제목</td></tr>
-    <tr><td>##</td><td>부제</td></tr>
-    <tr><td>(없음)</td><td>본문</td></tr>
-    <tr><td>1.</td><td>번호 목록</td></tr>
+    <tr><td>^</td><td>caption (small line above the title)</td></tr>
+    <tr><td>#</td><td>title</td></tr>
+    <tr><td>##</td><td>subtitle</td></tr>
+    <tr><td>(none)</td><td>body text</td></tr>
+    <tr><td>1.</td><td>numbered list</td></tr>
   </table>
-  <p class="note">캡션이 있든 없든 <b>제목의 위치와 크기는 똑같습니다.</b> 번호 목록은 붙여 쓴 <code>1. 2. 3.</code> 줄이 한 덩어리로 묶입니다.</p>
+  <p class="note">Caption or no caption, <b>the title keeps exactly the same place and size.</b> Adjacent <code>1. 2. 3.</code> lines are gathered into one list.</p>
 
-  <h3>3. 이미지</h3>
+  <h3>3. Images</h3>
   <pre>!photo.jpg
 
 !a.jpg | First
 !b.jpg | Second
 !c.jpg | Third</pre>
-  <p><code>!</code> 만 쓰면 <b>빈 이미지 자리</b>가 됩니다. 미리보기의 그 자리에 이미지를 끌어다 놓으면 파일명이 소스에 채워집니다.</p>
+  <p>A bare <code>!</code> leaves an <b>empty image slot</b>. Drop a picture onto that slot in the preview and the filename is written into the source for you.</p>
   <pre>!</pre>
-  <p>이미지는 자리에 꽉 차게 잘립니다. 미리보기의 이미지를 <b>더블클릭</b>하면 확대·초점을 맞출 수 있고, 그 값이 <code>~</code> 뒤에 기록됩니다.</p>
+  <p>Images are cropped to fill their slot. <b>Double-click</b> one in the preview to set zoom and focal point; the values are recorded after <code>~</code>.</p>
   <pre>!photo.jpg ~ 1.4 38 22 | Caption</pre>
-  <p class="note">직접 칠 일은 거의 없습니다. <code>~ 확대 초점X 초점Y</code> 순서입니다.</p>
+  <p class="note">You will rarely type this by hand. The order is <code>~ zoom focalX focalY</code>.</p>
 
-  <h3>4. 배치</h3>
-  <p>배치는 <b>줄바꿈</b>이 정합니다.</p>
+  <h3>4. Layout</h3>
+  <p>Layout is decided by <b>line breaks</b>.</p>
   <pre>A
 B
-C<b>            →  A → B → C   (가로)</b>
+C<b>            →  A → B → C   (across)</b>
 
 A
 
 B
 
-C<b>            →  A ↓ B ↓ C   (세로)</b></pre>
-  <p class="note">글·이미지·그룹 모두 같은 규칙을 따릅니다.</p>
+C<b>            →  A ↓ B ↓ C   (down)</b></pre>
+  <p class="note">Text, images and groups all follow the same rule.</p>
 
-  <h3>5. 그룹</h3>
-  <p><code>[ ]</code> 로 여러 요소를 <b>하나의 요소</b>로 묶습니다.</p>
+  <h3>5. Groups</h3>
+  <p><code>[ ]</code> binds several elements into <b>one element</b>.</p>
   <pre>A
 [
     B
@@ -341,7 +341,7 @@ C<b>            →  A ↓ B ↓ C   (세로)</b></pre>
     C
 ]
 D<b>            →  A → [B ↓ C] → D</b></pre>
-  <p>그룹 안에서도 <b>규칙은 똑같습니다.</b></p>
+  <p>Inside a group <b>the rule is identical.</b></p>
   <pre>[
     A
     B
@@ -353,58 +353,58 @@ D<b>            →  A → [B ↓ C] → D</b></pre>
 ]<b>            →  [A → B]
                      ↓
                   [C → D]</b></pre>
-  <p class="note">들여쓰기는 문법이 아닙니다. 읽기 편하라고 쓰는 것뿐입니다.</p>
+  <p class="note">Indentation is not syntax. It is only there to make the source easier to read.</p>
 
-  <h3>6. 글 안에서 줄바꿈</h3>
-  <p>줄 끝의 <code>\</code> 는 같은 글 요소를 다음 줄로 잇습니다. <code>@footer</code> 에서도 같습니다.</p>
+  <h3>6. Breaking a line inside one block</h3>
+  <p>A <code>\</code> at the end of a line continues the same text element on the next line. It works in <code>@footer</code> too.</p>
   <pre>Objects on the desk exist separately. \
 Cables become tangled, and the experience becomes fragmented.</pre>
   <table>
-    <tr><td>줄바꿈</td><td>가로 배치</td></tr>
-    <tr><td>빈 줄</td><td>세로 배치</td></tr>
-    <tr><td>\ + 줄바꿈</td><td>글 안에서 줄바꿈</td></tr>
+    <tr><td>line break</td><td>place across</td></tr>
+    <tr><td>blank line</td><td>place down</td></tr>
+    <tr><td>\ + line break</td><td>break inside one block</td></tr>
   </table>
 
-  <h3>7. 슬라이드 수식어</h3>
+  <h3>7. Slide modifiers</h3>
   <pre>@bg !backdrop.jpg
 @footer Your name \
 2026</pre>
-  <p><code>!</code> 의 뜻은 그대로입니다. <code>!backdrop.jpg</code> 는 요소로 놓이고, <code>@bg !backdrop.jpg</code> 는 슬라이드 배경이 됩니다.</p>
-  <p class="note">PpTex 에는 <code>@color</code> <code>@size</code> <code>@margin</code> <code>@align</code> 같은 저수준 스타일 속성이 없습니다.</p>
+  <p><code>!</code> still means the same thing. <code>!backdrop.jpg</code> is placed as an element; <code>@bg !backdrop.jpg</code> becomes the slide background.</p>
+  <p class="note">PpTex has no low-level style attributes such as <code>@color</code> <code>@size</code> <code>@margin</code> <code>@align</code>.</p>
 
-  <h3>문법 요약</h3>
+  <h3>Syntax at a glance</h3>
   <table>
-    <tr><td>---</td><td>새 슬라이드</td></tr>
-    <tr><td>^</td><td>캡션</td></tr>
-    <tr><td>#</td><td>제목</td></tr>
-    <tr><td>##</td><td>부제</td></tr>
-    <tr><td>(없음)</td><td>본문</td></tr>
-    <tr><td>1.</td><td>번호 목록</td></tr>
-    <tr><td>!</td><td>이미지 (이름 없으면 빈 자리)</td></tr>
-    <tr><td>|</td><td>이미지 캡션</td></tr>
-    <tr><td>~</td><td>이미지 확대·초점</td></tr>
-    <tr><td>[ ]</td><td>그룹</td></tr>
-    <tr><td>줄바꿈</td><td>가로 배치</td></tr>
-    <tr><td>빈 줄</td><td>세로 배치</td></tr>
-    <tr><td>\ + 줄바꿈</td><td>글 안에서 줄바꿈</td></tr>
-    <tr><td>@bg</td><td>배경 이미지</td></tr>
-    <tr><td>@footer</td><td>푸터</td></tr>
+    <tr><td>---</td><td>new slide</td></tr>
+    <tr><td>^</td><td>caption</td></tr>
+    <tr><td>#</td><td>title</td></tr>
+    <tr><td>##</td><td>subtitle</td></tr>
+    <tr><td>(none)</td><td>body text</td></tr>
+    <tr><td>1.</td><td>numbered list</td></tr>
+    <tr><td>!</td><td>image (empty slot if unnamed)</td></tr>
+    <tr><td>|</td><td>image caption</td></tr>
+    <tr><td>~</td><td>image zoom &amp; focal point</td></tr>
+    <tr><td>[ ]</td><td>group</td></tr>
+    <tr><td>line break</td><td>place across</td></tr>
+    <tr><td>blank line</td><td>place down</td></tr>
+    <tr><td>\ + line break</td><td>break inside one block</td></tr>
+    <tr><td>@bg</td><td>background image</td></tr>
+    <tr><td>@footer</td><td>footer</td></tr>
   </table>
 
-  <h3>파일</h3>
-  <p><b>열기</b>로 <code>.pptex</code> / <code>.txt</code> 파일을 열면 그때부터 <b>그 파일을 직접 고칩니다.</b> 편집하면 잠시 뒤 자동 저장되고, <code>⌘/Ctrl+S</code> 로 즉시 저장할 수 있습니다. 텍스트 파일을 창에 끌어다 놓아도 열립니다.</p>
-  <p class="note">파일을 열지 않은 상태에서는 브라우저에 임시 저장만 됩니다. 파일 직접 편집은 Chrome 계열에서 동작하며, <code>file://</code> 로 열면 막힐 수 있으니 로컬 서버로 여는 편이 안전합니다.</p>
+  <h3>Files</h3>
+  <p>Open a <code>.pptex</code> / <code>.txt</code> file with <b>Open</b> and from then on <b>you are editing that file directly.</b> Edits are saved automatically a moment later, and <code>⌘/Ctrl+S</code> saves at once. Dropping a text file onto the window opens it too.</p>
+  <p class="note">With no file open, your work is only kept temporarily in the browser. Editing files in place works in Chromium browsers, and may be blocked when the page is opened over <code>file://</code> — serving it from a local server is safer.</p>
 
-  <h3>편집</h3>
+  <h3>Editing</h3>
   <table>
-    <tr><td>⌘/Ctrl + S</td><td>저장</td></tr>
-    <tr><td>⌘/Ctrl + Enter</td><td>새 슬라이드</td></tr>
-    <tr><td>미리보기 클릭</td><td>그 요소로 커서 이동</td></tr>
-    <tr><td>이미지 더블클릭</td><td>확대·초점 맞추기</td></tr>
-    <tr><td>이미지 드래그&드롭</td><td>미리보기의 그 자리에 채워 넣기</td></tr>
+    <tr><td>⌘/Ctrl + S</td><td>save</td></tr>
+    <tr><td>⌘/Ctrl + Enter</td><td>new slide</td></tr>
+    <tr><td>click the preview</td><td>move the caret to that element</td></tr>
+    <tr><td>double-click an image</td><td>set zoom &amp; focal point</td></tr>
+    <tr><td>drag &amp; drop an image</td><td>fill that slot in the preview</td></tr>
   </table>
-  <p class="note">PDF 는 인쇄 창에서 <b>대상: PDF로 저장</b>, <b>여백: 없음</b>으로 내보냅니다. 페이지는 16:9(1280×720)로, 배경색은 <b>배경 그래픽 설정과 상관없이</b> 그대로 인쇄됩니다.</p>
-  <p class="note">PPTX 는 미리보기에서 잰 자리 그대로 <b>글자는 글상자로, 사진은 사진으로</b> 옮깁니다. PowerPoint 에서 그대로 고칠 수 있습니다. 글꼴(Freesentation)이 설치되어 있지 않으면 글자 모양만 대체 글꼴로 바뀝니다.</p>
+  <p class="note">For PDF, use the print dialog with <b>Destination: Save as PDF</b> and <b>Margins: None</b>. Pages are 16:9 (1280×720), and background colours print <b>whatever the background-graphics setting says</b>.</p>
+  <p class="note">PPTX carries the geometry measured in the preview straight across — <b>text becomes text boxes, photos become pictures</b> — so you can keep editing in PowerPoint. If the Freesentation font is not installed, only the letterforms fall back to another font.</p>
 </aside>
 
 <div id="print-root"></div>
@@ -770,8 +770,8 @@ function imgNode(c){
     return i;
   }
   const ph = el('div','ph');
-  ph.appendChild(el('div', null, c.name || '빈 이미지 자리'));
-  ph.appendChild(el('div','sub', c.name ? '아직 없음 · 여기로 끌어다 놓기' : '여기로 끌어다 놓기'));
+  ph.appendChild(el('div', null, c.name || 'Empty image slot'));
+  ph.appendChild(el('div','sub', c.name ? 'Not here yet · drop it in' : 'Drop an image here'));
   return ph;
 }
 
@@ -899,7 +899,7 @@ let cropState = null;
 
 function openCrop(c, aspect){
   const url = imageURL(c.name);
-  if (!url){ flashHint('먼저 이미지를 이 자리에 끌어다 놓으세요.'); return; }
+  if (!url){ flashHint('Drop an image into this slot first.'); return; }
   const crop = c.crop ? Object.assign({}, c.crop) : { z:1, x:50, y:50 };
   cropState = { line:c.line, crop, aspect };
 
@@ -1008,7 +1008,7 @@ function render(){
 
   if (!SLIDES.length){
     preview.appendChild(el('div','empty-note',
-      '왼쪽에 내용을 입력하면 슬라이드가 여기에 나타납니다.\n--- 로 슬라이드를 구분하세요.\n우측 상단 "문법" 을 참고하세요.'));
+      'Type on the left and your slides appear here.\nSeparate slides with ---.\nSee "Syntax" at the top right.'));
     $('#nowLabel').textContent = '';
     return;
   }
@@ -1156,16 +1156,16 @@ function dirChip(){
   chip.appendChild(el('span','ico','\uD83D\uDCC1'));
   if (imgDir){
     chip.appendChild(document.createTextNode(imgDir.name));
-    chip.title = '이 폴더의 그림을 자동으로 불러오고, 새로 끌어다 놓은 그림도 여기에 저장합니다 · 눌러서 다른 폴더로';
+    chip.title = 'Images in this folder load automatically, and images you drop are saved here · click to pick another folder';
   } else if (pendingDir){
     chip.classList.add('warn');
-    chip.appendChild(document.createTextNode('이미지 폴더 다시 허용'));
-    chip.title = pendingDir.name + ' 폴더를 기억해 두었습니다. 한 번 눌러 접근을 다시 허용해 주세요.';
+    chip.appendChild(document.createTextNode('Re-allow image folder'));
+    chip.title = 'The folder ' + pendingDir.name + ' is remembered. Click once to grant access again.';
     chip.addEventListener('click', () => attachDir(pendingDir, true));
     return chip;
   } else {
-    chip.appendChild(document.createTextNode('이미지 폴더 연결'));
-    chip.title = '문서가 있는 폴더를 연결하면 그림이 그 안에 파일로 남고, 다시 열 때 자동으로 불러옵니다';
+    chip.appendChild(document.createTextNode('Link image folder'));
+    chip.title = 'Link the folder your deck lives in and images are kept there as files, ready the next time you open it';
   }
   chip.addEventListener('click', linkDir);
   return chip;
@@ -1180,8 +1180,8 @@ function refreshStrip(){
   if (!images.size){
     const h = el('span','hint');
     h.innerHTML = imgDir
-      ? '<b>' + imgDir.name + '</b> 폴더가 비어 있습니다 · 미리보기의 빈 자리에 끌어다 놓으면 이 폴더에 저장됩니다'
-      : '이미지를 미리보기의 <b>빈 자리에 직접 끌어다 놓으세요</b> · 칩을 클릭하면 커서 위치에 <b>!파일명</b> 이 삽입됩니다';
+      ? '<b>' + imgDir.name + '</b> is empty · drop an image on an empty slot in the preview and it is saved here'
+      : 'Drop images <b>straight onto an empty slot</b> in the preview · clicking a chip inserts <b>!filename</b> at the caret';
     imgstrip.appendChild(h);
     return;
   }
@@ -1190,7 +1190,7 @@ function refreshStrip(){
     const th = el('img'); th.src = url; chip.appendChild(th);
     chip.appendChild(document.createTextNode(name));
     const x = el('span','x','×');
-    x.title = '제거';
+    x.title = 'Remove';
     x.addEventListener('click', e => {
       e.stopPropagation();
       URL.revokeObjectURL(url);
@@ -1198,7 +1198,7 @@ function refreshStrip(){
       refreshStrip(); render();
     });
     chip.appendChild(x);
-    chip.title = '클릭하면 소스에 삽입';
+    chip.title = 'Click to insert into the source';
     chip.addEventListener('click', () => insertAtCursor('!' + name + '\n'));
     imgstrip.appendChild(chip);
   });
@@ -1226,7 +1226,7 @@ async function addImages(files, quiet){
           await w.write(f);
           await w.close();
         }
-      } catch(err){ flashHint('이미지를 폴더에 넣지 못했습니다: ' + err.message); }
+      } catch(err){ flashHint('Could not put the image in the folder: ' + err.message); }
     }
     putImage(name, f);
     names.push(name);
@@ -1261,8 +1261,8 @@ function setFileUI(){
   const info = $('#fileinfo');
   info.classList.toggle('nofile', !fileHandle);
   info.classList.toggle('dirty', dirty && !!fileHandle);
-  $('#fileName').textContent = fileHandle ? fileHandle.name : '제목 없음';
-  $('#fileState').textContent = fileHandle ? (dirty ? '수정됨' : '저장됨') : '파일 없음 · 브라우저에 임시 저장';
+  $('#fileName').textContent = fileHandle ? fileHandle.name : 'Untitled';
+  $('#fileState').textContent = fileHandle ? (dirty ? 'Edited' : 'Saved') : 'No file · kept in the browser';
 }
 
 function touch(){
@@ -1292,9 +1292,9 @@ async function saveFile(auto){
     await w.write(editor.value);
     await w.close();
     dirty = false; setFileUI();
-    if (!auto) flashHint('저장했습니다');
+    if (!auto) flashHint('Saved');
   } catch(err){
-    $('#fileState').textContent = '저장 실패: ' + err.message;
+    $('#fileState').textContent = 'Save failed: ' + err.message;
   }
 }
 
@@ -1515,7 +1515,7 @@ async function attachDir(dir, ask){
 async function ensureImgDir(){
   if (imgDir || !baseDir) return imgDir;
   try { imgDir = await baseDir.getDirectoryHandle('images', { create:true }); }
-  catch(err){ flashHint('이미지 폴더를 만들지 못했습니다: ' + err.message); return null; }
+  catch(err){ flashHint('Could not create the image folder: ' + err.message); return null; }
   return imgDir;
 }
 
@@ -1556,12 +1556,12 @@ async function claimName(dir, file){
 }
 
 async function linkDir(){
-  if (!CAN_DIR) return flashHint('이 브라우저는 폴더 열기를 지원하지 않습니다');
+  if (!CAN_DIR) return flashHint('This browser cannot open folders');
   const opts = { mode:'readwrite' };
   if (fileHandle) opts.startIn = fileHandle;     /* 문서가 있는 폴더에서 시작한다 */
   let dir;
   try { dir = await showDirectoryPicker(opts); } catch(_){ return; }
-  if (await attachDir(dir, true)) flashHint('이미지 폴더: ' + (imgDir ? imgDir.name : dir.name));
+  if (await attachDir(dir, true)) flashHint('Image folder: ' + (imgDir ? imgDir.name : dir.name));
 }
 
 /* =========================================================
@@ -1964,7 +1964,7 @@ async function pptxImage(url){
 
 async function buildPptx(){
   const doc = parseDoc(editor.value);
-  if (!doc.slides.length) throw new Error('슬라이드가 없습니다');
+  if (!doc.slides.length) throw new Error('There are no slides');
 
   /* 화면 밖에 실제 크기로 한 번 그린다 */
   const stage = el('div');
@@ -2072,7 +2072,7 @@ async function exportPptx(){
   const btn = $('#btnPptx');
   btn.disabled = true;
   const label = btn.textContent;
-  btn.textContent = '만드는 중…';
+  btn.textContent = 'Building…';
   try {
     const blob = await buildPptx();
     const name = deckBaseName() + '.pptx';
@@ -2089,9 +2089,9 @@ async function exportPptx(){
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 3000);
     }
-    flashHint('PPTX 를 내보냈습니다');
+    flashHint('Exported to PPTX');
   } catch(err){
-    flashHint('PPTX 내보내기 실패: ' + err.message);
+    flashHint('PPTX export failed: ' + err.message);
   } finally {
     btn.disabled = false; btn.textContent = label;
   }
