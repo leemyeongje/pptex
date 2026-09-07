@@ -91,8 +91,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
 .slide.s-statement{padding:64px;--tit:58px;--sub:34px}
 
 /* background image */
-.bgimg{position:absolute;inset:0;z-index:0}
-.bgimg img{width:100%;height:100%;object-fit:cover}
+.bgimg{position:absolute;inset:0;z-index:0;overflow:hidden}
+.bgimg img{width:100%;height:100%;object-fit:cover;
+           object-position:var(--ox,50%) var(--oy,50%);
+           transform:scale(var(--z,1));transform-origin:var(--ox,50%) var(--oy,50%)}
 .slide.hasbg .bgimg::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.55) 0%,rgba(0,0,0,.18) 45%,rgba(0,0,0,.5) 100%)}
 .slide.hasbg > .body{position:relative;z-index:2}
 
@@ -368,10 +370,10 @@ Cables become tangled, and the experience becomes fragmented.</pre>
   </table>
 
   <h3>7. Slide modifiers</h3>
-  <pre>@bg !backdrop.jpg
+  <pre>@bg !backdrop.jpg ~ 1.6 40 30
 @footer Your name \
 2026</pre>
-  <p><code>!</code> still means the same thing. <code>!backdrop.jpg</code> is placed as an element; <code>@bg !backdrop.jpg</code> becomes the slide background.</p>
+  <p><code>!</code> still means the same thing. <code>!backdrop.jpg</code> is placed as an element; <code>@bg !backdrop.jpg</code> becomes the slide background. <code>~</code> works here too — <b>double-click</b> the background where no element covers it to set its zoom and focal point.</p>
   <p class="note">PpTex has no low-level style attributes such as <code>@color</code> <code>@size</code> <code>@margin</code> <code>@align</code>.</p>
 
   <h3>Syntax at a glance</h3>
@@ -384,7 +386,7 @@ Cables become tangled, and the experience becomes fragmented.</pre>
     <tr><td>1.</td><td>numbered list</td></tr>
     <tr><td>!</td><td>image (empty slot if unnamed)</td></tr>
     <tr><td>|</td><td>image caption</td></tr>
-    <tr><td>~</td><td>image zoom &amp; focal point</td></tr>
+    <tr><td>~</td><td>image zoom &amp; focal point (<code>@bg</code> too)</td></tr>
     <tr><td>[ ]</td><td>group</td></tr>
     <tr><td>line break</td><td>place across</td></tr>
     <tr><td>blank line</td><td>place down</td></tr>
@@ -674,7 +676,8 @@ function parseSlide(rawLines, from){
     const m = it.blank ? null : it.text.match(RE.dir);
     if (m){
       const name = m[1], arg = m[2].trim();
-      if (name === 'bg')     { s.bg = arg.replace(/^!\s*/, '').trim(); continue; }
+      if (name === 'bg')     { const b = parseImg(arg.replace(/^!\s*/, '')); b.line = it.line;
+                               s.bg = b.name ? b : null; continue; }
       if (name === 'footer') { s.footer = arg; continue; }
       continue;                                   // no other @ exists in PpTex
     }
@@ -841,8 +844,9 @@ function renderSlide(s, live){
   const slide = el('div', 'slide s-' + s.scale + (s.bg ? ' hasbg' : '') + (s.bleed ? ' bleed' : ''));
   if (s.bg){
     const b = el('div','bgimg');
-    b.appendChild(imgNode({ name:s.bg }));
+    b.appendChild(imgNode(s.bg));
     slide.appendChild(b);
+    if (live) wireBackground(slide, s.bg);
   }
   slide.appendChild(renderNode(s.root, true, live));
   if (s.footer) slide.appendChild(multiline(el('div','s-footer'), s.footer.split('\n')));
@@ -874,9 +878,11 @@ function writeLine(idx, text){
 function updateImageLine(idx, patch){
   const raw = sourceLine(idx);
   if (raw == null) return;
-  const m = raw.trim().match(RE.img);
-  if (!m) return;
-  writeLine(idx, imgLine(Object.assign(parseImg(m[1]), patch)));
+  const t = raw.trim(), d = t.match(RE.dir);         /* @bg holds an image reference of its own */
+  const bg = d && d[1] === 'bg';
+  const rest = bg ? d[2].replace(/^!\s*/, '') : (t.match(RE.img) || [])[1];
+  if (rest == null) return;
+  writeLine(idx, (bg ? '@bg ' : '') + imgLine(Object.assign(parseImg(rest), patch)));
 }
 
 function wireImageCell(cell, c){
@@ -897,6 +903,16 @@ function wireImageCell(cell, c){
   cell.addEventListener('dblclick', e => {
     e.preventDefault(); e.stopPropagation();
     const box = cell.querySelector('.imgbox').getBoundingClientRect();
+    openCrop(c, box.width / box.height);
+  });
+}
+
+/* the background photo fills the whole slide, so any spot no cell covers opens its crop */
+function wireBackground(slide, c){
+  slide.addEventListener('dblclick', e => {
+    if (e.target.closest('.cell')) return;
+    e.preventDefault(); e.stopPropagation();
+    const box = slide.getBoundingClientRect();
     openCrop(c, box.width / box.height);
   });
 }

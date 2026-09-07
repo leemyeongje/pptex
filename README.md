@@ -165,8 +165,16 @@ blank line     vertical layout
 ```
 
 The `!` retains its meaning as an image reference: `!backdrop.jpg` places the image as an
-element, while `@bg !backdrop.jpg` uses it as the slide background. Everything following
-`@footer` becomes the footer content, and `\` breaks its lines like any other text.
+element, while `@bg !backdrop.jpg` uses it as the slide background. `~` works here too —
+double-click the background in the rendered pane, anywhere no element covers it, to set
+its zoom and focal point:
+
+```
+@bg !backdrop.jpg ~ 1.6 40 30
+```
+
+Everything following `@footer` becomes the footer content, and `\` breaks its lines like
+any other text.
 
 A modifier is enough to make a slide: `@footer` on its own gives an otherwise empty
 slide with the footer in its usual place.
