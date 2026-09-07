@@ -232,6 +232,8 @@ Numbered lists keep their hanging indent, empty image slots become dashed placeh
 and a `@bg` slide gets its photo plus the same gradient scrim.
 
 Text that fits on one line in the preview is exported with wrapping off, so a missing
-font changes letterforms but never the number of lines. Two things do not survive:
-the squircle corner shape (PowerPoint gets a plain rounded rectangle) and the
-Freesentation font itself, which PowerPoint substitutes unless it is installed.
+font changes letterforms but never the number of lines. Rounded photos keep their
+squircle: PowerPoint has no such preset, so the corner is drawn as a custom geometry —
+three cubic Béziers per corner tracing the same superellipse CSS draws. The one thing
+that does not survive is the Freesentation font itself, which PowerPoint substitutes
+unless it is installed.

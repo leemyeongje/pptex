@@ -1707,10 +1707,42 @@ function srcRect(img){
 let shapeId = 1;
 const xfrm = b => `<a:xfrm><a:off x="${emu(b.x)}" y="${emu(b.y)}"/><a:ext cx="${emu(b.w)}" cy="${emu(b.h)}"/></a:xfrm>`;
 
+/* CSS 의 corner-shape:squircle 은 superellipse(2), 곧 |u|⁴+|v|⁴=1 이다.
+   PowerPoint 의 roundRect 는 원호라서 이 모양이 나오지 않는다 — 모서리 하나를
+   3차 베지에 세 개로 근사한 custGeom 을 직접 그려 미리보기·PDF 와 같게 맞춘다.
+   (반지름의 0.1% 이내 오차. 값은 모서리 점에서 잰 (p,q) 배수) */
+const SQUIRCLE = [
+  [0.563731, 0,        0.430374, 0.009083, 0.292893, 0.069395],
+  [0.163514, 0.126153, 0.103028, 0.216227, 0.069395, 0.292893],
+  [0.009083, 0.430374, 0,        0.563731, 0,        1       ]
+];
+
+/* 시계 방향으로 네 모서리: 꼭짓점, 들어오는 변 방향, 나가는 변 방향 */
+const CORNERS = [
+  [1, 0,  1,  0,  0,  1],   /* 우상 */
+  [1, 1,  0,  1, -1,  0],   /* 우하 */
+  [0, 1, -1,  0,  0, -1],   /* 좌하 */
+  [0, 0,  0, -1,  1,  0]    /* 좌상 */
+];
+
 function geom(radius, b){
   if (!radius) return '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>';
-  const adj = Math.min(50000, Math.round(radius / (Math.min(b.w, b.h) / 2) * 100000));
-  return `<a:prstGeom prst="roundRect"><a:avLst><a:gd name="adj" fmla="val ${adj}"/></a:avLst></a:prstGeom>`;
+  const W = emu(b.w), H = emu(b.h);
+  const r = Math.min(emu(radius), W / 2, H / 2);
+  const pt = (x, y) => `<a:pt x="${Math.round(x)}" y="${Math.round(y)}"/>`;
+
+  let d = '';
+  CORNERS.forEach(([kx, ky, ix, iy, ox, oy], i) => {
+    const cx = kx * W, cy = ky * H;
+    const at = (p, q) => pt(cx - p * r * ix + q * r * ox, cy - p * r * iy + q * r * oy);
+    d += (i ? '<a:lnTo>' : '<a:moveTo>') + at(1, 0) + (i ? '</a:lnTo>' : '</a:moveTo>');
+    SQUIRCLE.forEach(c => {
+      d += '<a:cubicBezTo>' + at(c[0], c[1]) + at(c[2], c[3]) + at(c[4], c[5]) + '</a:cubicBezTo>';
+    });
+  });
+  return '<a:custGeom><a:avLst/><a:gdLst/><a:ahLst/><a:cxnLst/>' +
+         `<a:rect l="0" t="0" r="${W}" b="${H}"/>` +
+         `<a:pathLst><a:path w="${W}" h="${H}">${d}<a:close/></a:path></a:pathLst></a:custGeom>`;
 }
 
 function runProps(f){
