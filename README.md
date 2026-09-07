@@ -7,7 +7,7 @@ visual styling is handled by the renderer.
 **→ [leemyeongje.github.io/pptex](https://leemyeongje.github.io/pptex/)**
 
 `index.html` is the reference renderer and editor — one self-contained file, no build
-step. Current version: **1.0** — see [CHANGELOG.md](CHANGELOG.md). Use the link above,
+step. Current version: **1.1** — see [CHANGELOG.md](CHANGELOG.md). Use the link above,
 or run it locally:
 
 ```

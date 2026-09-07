@@ -3,6 +3,15 @@
 Versions are marked in `index.html` (`VERSION`), shown next to the logo in the editor,
 and tagged in git.
 
+## 1.1 — 2026-09-07
+
+- **`~` works on `@bg`.** A background photo takes a zoom and focal point like any other
+  image: `@bg !backdrop.jpg ~ 1.6 40 30`. Double-clicking the background — anywhere no
+  element covers it — opens the same crop editor, and applying it rewrites the `@bg`
+  line. The crop carries through to the PDF and to the PPTX `srcRect`.
+- The sample deck's closing slide no longer repeats `Thank you` in its footer; the
+  footer is just the `Made with PpTex` line.
+
 ## 1.0 — 2026-09-07
 
 First numbered release. Everything the language and the reference renderer do today:

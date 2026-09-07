@@ -420,7 +420,7 @@ Cables become tangled, and the experience becomes fragmented.</pre>
    The rule is identical at every depth.
    ========================================================= */
 
-const VERSION = '1.0';
+const VERSION = '1.1';
 
 const DEFAULT_SRC = `@footer Your name \\
 2026
@@ -488,8 +488,7 @@ A backslash breaks a line inside the same block.
 
 ---
 
-@footer Thank you \\
-Made with PpTex ${VERSION}
+@footer Made with PpTex ${VERSION}
 # Thank you
 `;
 
@@ -526,6 +525,7 @@ const LEGACY_KEYS = ['pptex.src'];
 const SAMPLE_FINGERPRINTS = new Set([
   '1l0vssg-1087',   // the first sample (taken from a real deck)
   '1le9cue-769',    // before 1.0 (no version line on the last slide)
+  '1v49jjt-791',    // 1.0 (the closing slide repeated 'Thank you' in its footer)
 ]);
 
 function fingerprint(t){
