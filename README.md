@@ -223,3 +223,15 @@ The preview follows the caret: the slide your cursor is in stays in view as you 
 **PDF** — the PDF button exports one 16:9 page (1280×720) per slide, at full bleed with
 no trailing blank page. Colours are forced with `print-color-adjust: exact`, so the
 browser's "Background graphics" setting does not matter; set margins to none.
+
+**PPTX** — the PPTX button writes a PowerPoint file, one 16:9 slide per slide. It is not
+a picture of the deck: each slide is laid out off-screen at full 1280×720 size and the
+measured positions become real PowerPoint shapes, so text stays text in editable boxes
+and photos stay photos, cropped by `srcRect` to match the `~` zoom and focal point.
+Numbered lists keep their hanging indent, empty image slots become dashed placeholders,
+and a `@bg` slide gets its photo plus the same gradient scrim.
+
+Text that fits on one line in the preview is exported with wrapping off, so a missing
+font changes letterforms but never the number of lines. Two things do not survive:
+the squircle corner shape (PowerPoint gets a plain rounded rectangle) and the
+Freesentation font itself, which PowerPoint substitutes unless it is installed.

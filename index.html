@@ -244,6 +244,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
     <button class="btn toggle on" id="btnFollow" title="커서가 있는 슬라이드를 따라 미리보기를 스크롤합니다">커서 따라가기</button>
     <button class="btn" id="btnImgs">이미지 추가</button>
     <button class="btn" id="btnHelp">문법</button>
+    <button class="btn" id="btnPptx">PPTX</button>
     <button class="btn primary" id="btnPdf">PDF</button>
     <input type="file" id="fileSrc" accept=".pptex,.txt,.md,text/plain" hidden>
     <input type="file" id="fileImgs" accept="image/*" multiple hidden>
@@ -403,6 +404,7 @@ Cables become tangled, and the experience becomes fragmented.</pre>
     <tr><td>이미지 드래그&드롭</td><td>미리보기의 그 자리에 채워 넣기</td></tr>
   </table>
   <p class="note">PDF 는 인쇄 창에서 <b>대상: PDF로 저장</b>, <b>여백: 없음</b>으로 내보냅니다. 페이지는 16:9(1280×720)로, 배경색은 <b>배경 그래픽 설정과 상관없이</b> 그대로 인쇄됩니다.</p>
+  <p class="note">PPTX 는 미리보기에서 잰 자리 그대로 <b>글자는 글상자로, 사진은 사진으로</b> 옮깁니다. PowerPoint 에서 그대로 고칠 수 있습니다. 글꼴(Freesentation)이 설치되어 있지 않으면 글자 모양만 대체 글꼴로 바뀝니다.</p>
 </aside>
 
 <div id="print-root"></div>
@@ -1561,6 +1563,509 @@ async function linkDir(){
   try { dir = await showDirectoryPicker(opts); } catch(_){ return; }
   if (await attachDir(dir, true)) flashHint('이미지 폴더: ' + (imgDir ? imgDir.name : dir.name));
 }
+
+/* =========================================================
+   9. PPTX 내보내기
+   슬라이드를 화면 밖에 1280x720 실제 크기로 한 번 그려 두고,
+   그 자리에서 잰 좌표를 그대로 OOXML 도형으로 옮긴다.
+   레이아웃을 다시 구현하지 않으므로 미리보기와 어긋나지 않는다.
+   ========================================================= */
+
+const EMU  = 9525;                       /* 1px(96dpi) */
+const PPTX_FONT = 'Freesentation';
+
+const e_ = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const emu = px => Math.round(px * EMU);
+const pt100 = px => Math.round(px * 75);          /* px -> 1/100 pt */
+const kpct = v => Math.round(v * 100000);
+
+/* ---------- zip (store / deflate-raw) ---------- */
+
+function crc32(u8){
+  let t = crc32.tbl;
+  if (!t){
+    t = crc32.tbl = new Uint32Array(256);
+    for (let n = 0; n < 256; n++){
+      let c = n;
+      for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      t[n] = c >>> 0;
+    }
+  }
+  let crc = 0xFFFFFFFF;
+  for (let i = 0; i < u8.length; i++) crc = t[(crc ^ u8[i]) & 0xFF] ^ (crc >>> 8);
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+
+async function deflateRaw(u8){
+  if (typeof CompressionStream !== 'function' || u8.length < 256) return null;
+  try {
+    const s = new Blob([u8]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+    const buf = new Uint8Array(await new Response(s).arrayBuffer());
+    return buf.length < u8.length ? buf : null;
+  } catch(_){ return null; }
+}
+
+async function zipBlob(entries){
+  const enc = new TextEncoder(), chunks = [], dir = [];
+  let offset = 0;
+  for (const ent of entries){
+    const name = enc.encode(ent.name);
+    const raw  = ent.data;
+    const crc  = crc32(raw);
+    const packed = await deflateRaw(raw);
+    const body = packed || raw, method = packed ? 8 : 0;
+
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true);
+    lh.setUint16(6, 0x0800, true);     lh.setUint16(8, method, true);
+    lh.setUint16(10, 0, true);         lh.setUint16(12, 0x2821, true);   /* 2000-01-01 */
+    lh.setUint32(14, crc, true);       lh.setUint32(18, body.length, true);
+    lh.setUint32(22, raw.length, true);
+    lh.setUint16(26, name.length, true); lh.setUint16(28, 0, true);
+    chunks.push(new Uint8Array(lh.buffer), name, body);
+
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true);
+    ch.setUint16(8, 0x0800, true);     ch.setUint16(10, method, true);
+    ch.setUint16(12, 0, true);         ch.setUint16(14, 0x2821, true);
+    ch.setUint32(16, crc, true);       ch.setUint32(20, body.length, true);
+    ch.setUint32(24, raw.length, true);
+    ch.setUint16(28, name.length, true);
+    ch.setUint32(42, offset, true);
+    dir.push(new Uint8Array(ch.buffer), name);
+
+    offset += 30 + name.length + body.length;
+  }
+  const dirSize = dir.reduce((n, b) => n + b.length, 0);
+  const eo = new DataView(new ArrayBuffer(22));
+  eo.setUint32(0, 0x06054b50, true);
+  eo.setUint16(8, entries.length, true); eo.setUint16(10, entries.length, true);
+  eo.setUint32(12, dirSize, true);       eo.setUint32(16, offset, true);
+  return new Blob([...chunks, ...dir, new Uint8Array(eo.buffer)],
+                  { type:'application/vnd.openxmlformats-officedocument.presentationml.presentation' });
+}
+
+/* ---------- 화면에서 값 읽기 ---------- */
+
+function cssColor(v){
+  const m = String(v).match(/-?[\d.]+/g);
+  if (!m) return { hex:'FFFFFF', a:1 };
+  const h = n => Math.max(0, Math.min(255, Math.round(+n))).toString(16).padStart(2, '0').toUpperCase();
+  return { hex: h(m[0]) + h(m[1]) + h(m[2]), a: m.length > 3 ? +m[3] : 1 };
+}
+
+function numProp(cs, name, dflt){
+  const v = parseFloat(cs.getPropertyValue(name));
+  return isFinite(v) ? v : dflt;
+}
+
+/* <br> 로 끊어 문단 목록을 만든다 */
+function textLines(node){
+  const out = []; let cur = '';
+  node.childNodes.forEach(n => {
+    if (n.nodeName === 'BR'){ out.push(cur); cur = ''; }
+    else cur += n.textContent;
+  });
+  out.push(cur);
+  return out;
+}
+
+/* 화면에서 저절로 접힌 줄이 없으면 PowerPoint 에서도 접지 않게 한다.
+   (글꼴이 없어 글자폭이 달라져도 줄 수가 늘지 않는다) */
+function lineCount(node){
+  try {
+    const r = document.createRange();
+    r.selectNodeContents(node);
+    return [...r.getClientRects()].filter(x => x.width > .5).length;
+  } catch(_){ return Infinity; }
+}
+
+/* object-fit:cover + object-position + scale() 을 srcRect 로 옮긴다 */
+function srcRect(img){
+  const bw = img.offsetWidth, bh = img.offsetHeight;
+  const iw = img.naturalWidth  || bw, ih = img.naturalHeight || bh;
+  if (!bw || !bh || !iw || !ih) return null;
+  const cs = getComputedStyle(img);
+  const z  = numProp(cs, '--z', 1) || 1;
+  const px = numProp(cs, '--ox', 50) / 100;
+  const py = numProp(cs, '--oy', 50) / 100;
+
+  const s = Math.max(bw / iw, bh / ih);
+  let cw = iw * s, ch = ih * s;
+  let left = (bw - cw) * px, top = (bh - ch) * py;
+  const ox = bw * px, oy = bh * py;                      /* transform-origin */
+  left = ox + (left - ox) * z;  top = oy + (top - oy) * z;
+  cw *= z; ch *= z;
+
+  const cl = v => Math.max(0, Math.min(99000, kpct(v)));
+  return { l: cl(-left / cw),            t: cl(-top / ch),
+           r: cl((left + cw - bw) / cw), b: cl((top + ch - bh) / ch) };
+}
+
+/* ---------- 도형 ---------- */
+
+let shapeId = 1;
+const xfrm = b => `<a:xfrm><a:off x="${emu(b.x)}" y="${emu(b.y)}"/><a:ext cx="${emu(b.w)}" cy="${emu(b.h)}"/></a:xfrm>`;
+
+function geom(radius, b){
+  if (!radius) return '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>';
+  const adj = Math.min(50000, Math.round(radius / (Math.min(b.w, b.h) / 2) * 100000));
+  return `<a:prstGeom prst="roundRect"><a:avLst><a:gd name="adj" fmla="val ${adj}"/></a:avLst></a:prstGeom>`;
+}
+
+function runProps(f){
+  return `<a:rPr lang="ko-KR" sz="${f.sz}" b="${f.b}" spc="${f.spc}" dirty="0">` +
+         `<a:solidFill><a:srgbClr val="${f.hex}"/></a:solidFill>` +
+         `<a:latin typeface="${PPTX_FONT}"/><a:ea typeface="${PPTX_FONT}"/><a:cs typeface="${PPTX_FONT}"/></a:rPr>`;
+}
+
+function fontOf(node){
+  const cs = getComputedStyle(node);
+  const fs = parseFloat(cs.fontSize) || 16;
+  const ls = parseFloat(cs.letterSpacing);
+  return {
+    sz  : pt100(fs),
+    b   : (parseInt(cs.fontWeight, 10) || 400) >= 600 ? 1 : 0,
+    spc : isFinite(ls) ? pt100(ls) : 0,
+    hex : cssColor(cs.color).hex,
+    algn: { center:'ctr', right:'r', justify:'just' }[cs.textAlign] || 'l',
+    lnPct: kpct((parseFloat(cs.lineHeight) || fs * 1.2) / fs)
+  };
+}
+
+function txSp(b, paras, opt){
+  opt = opt || {};
+  const wrap = opt.nowrap ? 'none' : 'square';
+  return `<p:sp><p:nvSpPr><p:cNvPr id="${++shapeId}" name="Text ${shapeId}"/>` +
+         `<p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>` +
+         `<p:spPr>${xfrm(b)}<a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>` +
+         `<p:txBody><a:bodyPr wrap="${wrap}" lIns="0" tIns="0" rIns="0" bIns="0" anchor="t">` +
+         `<a:noAutofit/></a:bodyPr><a:lstStyle/>${paras}</p:txBody></p:sp>`;
+}
+
+/* 여러 줄 텍스트 (제목·본문·캡션·꼬리말) */
+function textShape(node, b){
+  const f = fontOf(node);
+  const lines = textLines(node);
+  if (!lines.some(t => t.trim())) return '';
+  const pPr = `<a:pPr algn="${f.algn}"><a:lnSpc><a:spcPct val="${f.lnPct}"/></a:lnSpc></a:pPr>`;
+  const paras = lines.map(t => `<a:p>${pPr}` +
+    (t ? `<a:r>${runProps(f)}<a:t>${e_(t)}</a:t></a:r>`
+       : `<a:endParaRPr lang="ko-KR" sz="${f.sz}"/>`) + `</a:p>`).join('');
+  return txSp(b, paras, { nowrap: lineCount(node) <= lines.length });
+}
+
+/* 번호 목록: 번호는 회색, 본문은 매달린 들여쓰기 + 탭 */
+function listShape(node, b){
+  const f = fontOf(node);
+  const fs = parseFloat(getComputedStyle(node).fontSize) || 26;
+  const hang = emu(fs * 1.7 + 22);
+  const items = [...node.querySelectorAll('.item')];
+  if (!items.length) return '';
+  const paras = items.map(it => {
+    const noEl = it.querySelector('.no');
+    const no   = noEl ? noEl.textContent : '';
+    const rest = noEl && noEl.nextElementSibling ? noEl.nextElementSibling.textContent : it.textContent;
+    const gray = Object.assign({}, f, { hex: cssColor(getComputedStyle(noEl || it).color).hex });
+    const lh   = parseFloat(getComputedStyle(it).lineHeight) || fs * 1.42;
+    return `<a:p><a:pPr marL="${hang}" indent="-${hang}" algn="l">` +
+           `<a:lnSpc><a:spcPct val="${kpct(lh / fs)}"/></a:lnSpc>` +
+           `<a:tabLst><a:tab pos="${hang}" algn="l"/></a:tabLst></a:pPr>` +
+           `<a:r>${runProps(gray)}<a:t>${e_(no)}</a:t></a:r>` +
+           `<a:r>${runProps(f)}<a:t>\t${e_(rest)}</a:t></a:r></a:p>`;
+  }).join('');
+  const nowrap = items.every(it => {
+    const t = it.querySelector('.no') && it.querySelector('.no').nextElementSibling;
+    return t && lineCount(t) <= 1;
+  });
+  return txSp(b, paras, { nowrap });
+}
+
+function picShape(rid, crop, radius, b){
+  const sr = crop ? `<a:srcRect l="${crop.l}" t="${crop.t}" r="${crop.r}" b="${crop.b}"/>` : '';
+  return `<p:pic><p:nvPicPr><p:cNvPr id="${++shapeId}" name="Picture ${shapeId}"/>` +
+         `<p:cNvPicPr><a:picLocks noChangeAspect="0"/></p:cNvPicPr><p:nvPr/></p:nvPicPr>` +
+         `<p:blipFill><a:blip r:embed="${rid}"/>${sr}<a:stretch><a:fillRect/></a:stretch></p:blipFill>` +
+         `<p:spPr>${xfrm(b)}${geom(radius, b)}</p:spPr></p:pic>`;
+}
+
+/* 아직 채우지 않은 이미지 자리 */
+function slotShape(ph, radius, b){
+  const cs   = getComputedStyle(ph);
+  const line = cssColor(cs.borderTopColor).hex;
+  const fill = cssColor(cs.backgroundColor);
+  const f    = fontOf(ph);
+  const paras = [...ph.children].map(d => {
+    const df = fontOf(d);
+    return `<a:p><a:pPr algn="ctr"/><a:r>${runProps(df)}<a:t>${e_(d.textContent)}</a:t></a:r></a:p>`;
+  }).join('') || `<a:p><a:pPr algn="ctr"/><a:endParaRPr sz="${f.sz}"/></a:p>`;
+  return `<p:sp><p:nvSpPr><p:cNvPr id="${++shapeId}" name="Slot ${shapeId}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>` +
+         `<p:spPr>${xfrm(b)}${geom(radius, b)}` +
+         (fill.a ? `<a:solidFill><a:srgbClr val="${fill.hex}"/></a:solidFill>` : '<a:noFill/>') +
+         `<a:ln w="19050"><a:solidFill><a:srgbClr val="${line}"/></a:solidFill><a:prstDash val="dash"/></a:ln></p:spPr>` +
+         `<p:txBody><a:bodyPr wrap="square" lIns="91440" tIns="45720" rIns="91440" bIns="45720" anchor="ctr">` +
+         `<a:noAutofit/></a:bodyPr><a:lstStyle/>${paras}</p:txBody></p:sp>`;
+}
+
+/* 배경 사진 위에 덮이는 그라디언트 (.slide.hasbg .bgimg::after) */
+function scrimShape(b){
+  const stop = (pos, a) => `<a:gs pos="${pos}"><a:srgbClr val="000000"><a:alpha val="${a}"/></a:srgbClr></a:gs>`;
+  return `<p:sp><p:nvSpPr><p:cNvPr id="${++shapeId}" name="Scrim ${shapeId}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>` +
+         `<p:spPr>${xfrm(b)}<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>` +
+         `<a:gradFill rotWithShape="1"><a:gsLst>${stop(0, 55000)}${stop(45000, 18000)}${stop(100000, 50000)}</a:gsLst>` +
+         `<a:lin ang="5400000" scaled="0"/></a:gradFill><a:ln><a:noFill/></a:ln></p:spPr>` +
+         `<p:txBody><a:bodyPr/><a:lstStyle/><a:p/></p:txBody></p:sp>`;
+}
+
+/* ---------- 슬라이드 한 장 ---------- */
+
+const PICK = '.bgimg, .cell.img > .imgbox, .tblock > .caption:not(.empty), .tblock > .title, ' +
+             '.tblock > .subtitle, .cell.text, .cell.img > .figcap, .cell.list, .s-footer';
+
+function slideShapes(slideEl, ridOf){
+  const base = slideEl.getBoundingClientRect();
+  const box = n => {
+    const r = n.getBoundingClientRect();
+    return { x:r.left - base.left, y:r.top - base.top, w:r.width, h:r.height };
+  };
+  const media = n => {
+    const b = box(n);
+    const radius = parseFloat(getComputedStyle(n).borderTopLeftRadius) || 0;
+    const img = n.querySelector(':scope > img');
+    if (img){
+      const rid = ridOf(img.alt);
+      if (rid) return picShape(rid, srcRect(img), radius, b);
+    }
+    const ph = n.querySelector(':scope > .ph');
+    return ph ? slotShape(ph, radius, b) : '';
+  };
+
+  let out = '';
+  slideEl.querySelectorAll(PICK).forEach(n => {
+    if (n.classList.contains('bgimg')){
+      out += media(n);
+      if (slideEl.classList.contains('hasbg')) out += scrimShape(box(n));
+    }
+    else if (n.classList.contains('imgbox')) out += media(n);
+    else if (n.classList.contains('list'))   out += listShape(n, box(n));
+    else                                     out += textShape(n, box(n));
+  });
+  return out;
+}
+
+/* ---------- 패키지 ---------- */
+
+const NS = 'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" ' +
+           'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" ' +
+           'xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"';
+const XML = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+const RELNS = '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">';
+const REL = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/';
+
+function slideXml(shapes){
+  return XML + `<p:sld ${NS}><p:cSld><p:bg><p:bgPr><a:solidFill><a:srgbClr val="000000"/></a:solidFill>` +
+    `<a:effectLst/></p:bgPr></p:bg><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>` +
+    `<p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>` +
+    shapes + `</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>`;
+}
+
+function themeXml(){
+  const dk = c => `<a:srgbClr val="${c}"/>`;
+  const scheme = ['dk1:000000','lt1:FFFFFF','dk2:1F1F1F','lt2:E8E8E8','accent1:6EA8FF','accent2:8F8F8F',
+                  'accent3:C0C0C0','accent4:9A9A9A','accent5:5C5C5C','accent6:2A2A2A','hlink:6EA8FF','folHlink:8F8F8F']
+    .map(s => { const [k, v] = s.split(':'); return `<a:${k}>${dk(v)}</a:${k}>`; }).join('');
+  const face = `<a:latin typeface="${PPTX_FONT}"/><a:ea typeface="${PPTX_FONT}"/><a:cs typeface=""/>`;
+  const fill = '<a:solidFill><a:schemeClr val="phClr"/></a:solidFill>';
+  const line = '<a:ln w="9525" cap="flat" cmpd="sng" algn="ctr"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill>' +
+               '<a:prstDash val="solid"/></a:ln>';
+  return XML +
+    '<a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="PpTex">' +
+    `<a:themeElements><a:clrScheme name="PpTex">${scheme}</a:clrScheme>` +
+    `<a:fontScheme name="PpTex"><a:majorFont>${face}</a:majorFont><a:minorFont>${face}</a:minorFont></a:fontScheme>` +
+    `<a:fmtScheme name="PpTex"><a:fillStyleLst>${fill}${fill}${fill}</a:fillStyleLst>` +
+    `<a:lnStyleLst>${line}${line}${line}</a:lnStyleLst>` +
+    '<a:effectStyleLst><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle>' +
+    '<a:effectStyle><a:effectLst/></a:effectStyle></a:effectStyleLst>' +
+    `<a:bgFillStyleLst>${fill}${fill}${fill}</a:bgFillStyleLst></a:fmtScheme></a:themeElements>` +
+    '<a:objectDefaults/><a:extraClrSchemeLst/></a:theme>';
+}
+
+function masterXml(){
+  const lvl = `<a:lvl1pPr><a:defRPr sz="2400"><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill>` +
+              `<a:latin typeface="${PPTX_FONT}"/><a:ea typeface="${PPTX_FONT}"/></a:defRPr></a:lvl1pPr>`;
+  return XML + `<p:sldMaster ${NS}><p:cSld><p:bg><p:bgPr><a:solidFill><a:srgbClr val="000000"/></a:solidFill>` +
+    '<a:effectLst/></p:bgPr></p:bg><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>' +
+    '<p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>' +
+    '</p:spTree></p:cSld><p:clrMap bg1="dk1" tx1="lt1" bg2="dk2" tx2="lt2" accent1="accent1" accent2="accent2" ' +
+    'accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/>' +
+    '<p:sldLayoutIdLst><p:sldLayoutId id="2147483649" r:id="rId1"/></p:sldLayoutIdLst>' +
+    `<p:txStyles><p:titleStyle>${lvl}</p:titleStyle><p:bodyStyle>${lvl}</p:bodyStyle>` +
+    `<p:otherStyle>${lvl}</p:otherStyle></p:txStyles></p:sldMaster>`;
+}
+
+function layoutXml(){
+  return XML + `<p:sldLayout ${NS} type="blank" preserve="1"><p:cSld name="Blank"><p:spTree>` +
+    '<p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>' +
+    '<p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>' +
+    '</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sldLayout>';
+}
+
+/* ---------- 이미지 준비 ---------- */
+
+const KEEP = { 'image/png':'png', 'image/jpeg':'jpg', 'image/gif':'gif' };
+
+/* PowerPoint 가 못 읽는 형식(webp, avif, svg …)은 png 로 바꿔 넣는다 */
+async function pptxImage(url){
+  const blob = await (await fetch(url)).blob();
+  const ext = KEEP[blob.type];
+  if (ext) return { ext, data: new Uint8Array(await blob.arrayBuffer()) };
+  const bmp = await createImageBitmap(blob);
+  const cv = document.createElement('canvas');
+  cv.width = bmp.width; cv.height = bmp.height;
+  cv.getContext('2d').drawImage(bmp, 0, 0);
+  bmp.close && bmp.close();
+  const png = await new Promise(r => cv.toBlob(r, 'image/png'));
+  return { ext:'png', data: new Uint8Array(await png.arrayBuffer()) };
+}
+
+/* ---------- 내보내기 ---------- */
+
+async function buildPptx(){
+  const doc = parseDoc(editor.value);
+  if (!doc.slides.length) throw new Error('슬라이드가 없습니다');
+
+  /* 화면 밖에 실제 크기로 한 번 그린다 */
+  const stage = el('div');
+  stage.style.cssText = 'position:fixed;left:-20000px;top:0;width:1280px;visibility:hidden;pointer-events:none';
+  doc.slides.forEach(s => stage.appendChild(renderSlide(s, false)));
+  document.body.appendChild(stage);
+
+  try {
+    try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch(_){}
+    /* decode() 는 화면 밖 이미지에서 영영 끝나지 않는 경우가 있다. 로드 여부만 기다린다 */
+    await Promise.all([...stage.querySelectorAll('img')].map(i => i.complete ? null :
+      new Promise(r => { i.addEventListener('load', r, { once:true });
+                         i.addEventListener('error', r, { once:true });
+                         setTimeout(r, 4000); })));
+
+    /* 실제로 쓰인 이미지만 모은다 */
+    const used = [...new Set([...stage.querySelectorAll('img')]
+      .map(i => i.alt).filter(n => n && imageURL(n)))];
+    const media = new Map();
+    for (const name of used){
+      const m = await pptxImage(imageURL(name));
+      media.set(name, Object.assign(m, { part:'image' + (media.size + 1) + '.' + m.ext }));
+    }
+
+    shapeId = 1;
+    const files = [], exts = new Set();
+    const slideXmls = [...stage.children].map((slideEl, i) => {
+      const rels = new Map();                     /* rId1 은 늘 레이아웃, 이미지는 rId2 부터 */
+      const ridOf = name => {
+        const m = media.get(name) || media.get(String(name).split('/').pop());
+        if (!m) return null;
+        if (!rels.has(m.part)) rels.set(m.part, 'rId' + (rels.size + 2));
+        return rels.get(m.part);
+      };
+      const shapes = slideShapes(slideEl, ridOf);
+      /* 슬라이드마다 레이아웃 관계가 반드시 있어야 PowerPoint 가 파일을 연다 */
+      const relXml = XML + RELNS +
+        `<Relationship Id="rId1" Type="${REL}slideLayout" Target="../slideLayouts/slideLayout1.xml"/>` +
+        [...rels].map(([part, rid]) =>
+        `<Relationship Id="${rid}" Type="${REL}image" Target="../media/${part}"/>`).join('') + '</Relationships>';
+      return { n:i + 1, xml: slideXml(shapes), rels: relXml };
+    });
+
+    const put = (name, str) => files.push({ name, data: new TextEncoder().encode(str) });
+
+    media.forEach(m => exts.add(m.ext));
+
+    const n = slideXmls.length;
+    /* OPC 는 [Content_Types].xml 이 압축 파일의 첫 항목이어야 한다 */
+    put('[Content_Types].xml', XML +
+      '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+      '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+      '<Default Extension="xml" ContentType="application/xml"/>' +
+      [...exts].map(x => `<Default Extension="${x}" ContentType="image/${x === 'jpg' ? 'jpeg' : x}"/>`).join('') +
+      '<Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/>' +
+      '<Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/>' +
+      '<Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/>' +
+      '<Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>' +
+      slideXmls.map(s => `<Override PartName="/ppt/slides/slide${s.n}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`).join('') +
+      '</Types>');
+
+    put('_rels/.rels', XML + RELNS +
+      `<Relationship Id="rId1" Type="${REL}officeDocument" Target="ppt/presentation.xml"/></Relationships>`);
+
+    put('ppt/presentation.xml', XML + `<p:presentation ${NS} saveSubsetFonts="1">` +
+      '<p:sldMasterIdLst><p:sldMasterId id="2147483648" r:id="rId1"/></p:sldMasterIdLst><p:sldIdLst>' +
+      slideXmls.map(s => `<p:sldId id="${255 + s.n}" r:id="rId${s.n + 1}"/>`).join('') +
+      '</p:sldIdLst><p:sldSz cx="12192000" cy="6858000"/><p:notesSz cx="6858000" cy="9144000"/></p:presentation>');
+
+    put('ppt/_rels/presentation.xml.rels', XML + RELNS +
+      `<Relationship Id="rId1" Type="${REL}slideMaster" Target="slideMasters/slideMaster1.xml"/>` +
+      slideXmls.map(s => `<Relationship Id="rId${s.n + 1}" Type="${REL}slide" Target="slides/slide${s.n}.xml"/>`).join('') +
+      `<Relationship Id="rId${n + 2}" Type="${REL}theme" Target="theme/theme1.xml"/></Relationships>`);
+
+    put('ppt/slideMasters/slideMaster1.xml', masterXml());
+    put('ppt/slideMasters/_rels/slideMaster1.xml.rels', XML + RELNS +
+      `<Relationship Id="rId1" Type="${REL}slideLayout" Target="../slideLayouts/slideLayout1.xml"/>` +
+      `<Relationship Id="rId2" Type="${REL}theme" Target="../theme/theme1.xml"/></Relationships>`);
+    put('ppt/slideLayouts/slideLayout1.xml', layoutXml());
+    put('ppt/slideLayouts/_rels/slideLayout1.xml.rels', XML + RELNS +
+      `<Relationship Id="rId1" Type="${REL}slideMaster" Target="../slideMasters/slideMaster1.xml"/></Relationships>`);
+    put('ppt/theme/theme1.xml', themeXml());
+
+    slideXmls.forEach(s => {
+      put('ppt/slides/slide' + s.n + '.xml', s.xml);
+      put('ppt/slides/_rels/slide' + s.n + '.xml.rels', s.rels);
+    });
+    media.forEach(m => files.push({ name:'ppt/media/' + m.part, data:m.data }));
+
+    return zipBlob(files);
+  } finally {
+    stage.remove();
+  }
+}
+
+const PPTX_TYPES = [{ description:'PowerPoint',
+  accept:{ 'application/vnd.openxmlformats-officedocument.presentationml.presentation':['.pptx'] } }];
+
+function deckBaseName(){
+  const n = fileHandle ? fileHandle.name.replace(/\.[^.]+$/, '') : 'deck';
+  return n || 'deck';
+}
+
+async function exportPptx(){
+  const btn = $('#btnPptx');
+  btn.disabled = true;
+  const label = btn.textContent;
+  btn.textContent = '만드는 중…';
+  try {
+    const blob = await buildPptx();
+    const name = deckBaseName() + '.pptx';
+    if (typeof window.showSaveFilePicker === 'function'){
+      let h;
+      try { h = await showSaveFilePicker({ suggestedName:name, types:PPTX_TYPES }); }
+      catch(_){ return; }                      /* 사용자가 취소 */
+      const w = await h.createWritable();
+      await w.write(blob); await w.close();
+    } else {
+      const a = el('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = name;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+    }
+    flashHint('PPTX 를 내보냈습니다');
+  } catch(err){
+    flashHint('PPTX 내보내기 실패: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = label;
+  }
+}
+
+$('#btnPptx').addEventListener('click', exportPptx);
 
 /* ---------- boot ---------- */
 editor.value = loadDraft();
