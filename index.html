@@ -25,26 +25,65 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
 
 /* ---------- App chrome ---------- */
 .app{display:flex;flex-direction:column;height:100vh}
-.topbar{display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid var(--line);background:var(--panel);flex:none}
-.logo{font-weight:800;font-size:17px;letter-spacing:-.01em;margin-right:6px}
+.topbar{display:flex;align-items:center;gap:8px;padding:10px 18px;border-bottom:1px solid var(--line);background:var(--panel);flex:none}
+.logo{font-weight:800;font-size:17px;letter-spacing:-.01em}
 .logo em{font-style:normal;color:var(--tx2);font-weight:600}
-.ver{font-size:11px;font-weight:600;color:var(--tx3);border:1px solid var(--line);border-radius:999px;padding:1px 7px;margin-right:4px}
-.fileinfo{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--tx2);min-width:0}
+.ver{font-size:11px;font-weight:600;color:var(--tx3);border:1px solid var(--line);border-radius:999px;padding:1px 7px;margin-right:6px}
+/* file state and the actions that act on it stand together on the left */
+.fileinfo{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--tx2);min-width:0;
+          background:var(--panel2);border:1px solid var(--line);border-radius:99px;padding:4px 12px}
 .fileinfo .name{font-weight:600;color:#c9c9c9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
 .fileinfo .dot{width:6px;height:6px;border-radius:99px;background:#4a7a4a;flex:none}
-.fileinfo.dirty .dot{background:#c08a2e}
-.fileinfo.nofile .dot{background:#555}
 .fileinfo .state{color:var(--tx3);white-space:nowrap}
+.fileinfo .state:empty{display:none}
+/* a draft in browser storage is persistent, only unnamed — amber, never alarming */
+.fileinfo.draft{border-color:#3a3324}
+.fileinfo.draft .dot{background:#8a6f2e}
+.fileinfo.draft .state{color:#9a8452}
+.fileinfo.saving .dot{background:#c08a2e}
+.fileinfo.warn{border-color:#5a3226}
+.fileinfo.warn .dot{background:#b4553a}
+.fileinfo.warn .state{color:#dba18c}
+.grp{display:flex;align-items:center;gap:6px;margin-left:2px}
 .spacer{flex:1}
 .btn{font-family:var(--font);font-size:13px;font-weight:600;color:var(--tx);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;transition:background .12s;white-space:nowrap}
 .btn:hover{background:#262626}
 .btn:focus-visible{outline:2px solid #777;outline-offset:1px}
 .btn.primary{background:#f2f2f2;color:#111;border-color:#f2f2f2}
 .btn.primary:hover{background:#fff}
-.btn.toggle.on{background:#233348;border-color:#33507a;color:#cfe0ff}
+.btn.icon{width:30px;padding:7px 0;text-align:center;border-radius:99px;color:var(--tx2)}
+.btn.icon:hover{color:var(--tx)}
+.btn .caret{color:var(--tx3);font-size:10px;margin-left:5px;vertical-align:1px}
+
+/* export menu — pptx and pdf sit at the same level */
+.menuwrap{position:relative}
+.menu{position:absolute;top:calc(100% + 6px);right:0;min-width:196px;background:var(--panel2);
+      border:1px solid var(--line);border-radius:10px;padding:5px;box-shadow:0 14px 34px rgba(0,0,0,.5);
+      display:none;z-index:60}
+.menu.open{display:block}
+.mi{display:flex;width:100%;align-items:center;justify-content:space-between;gap:18px;
+    font-family:var(--font);font-size:13px;font-weight:600;color:var(--tx);background:none;border:0;
+    border-radius:7px;padding:8px 10px;cursor:pointer;text-align:left;white-space:nowrap}
+.mi:hover{background:#2a2a2a}
+.mi:disabled{opacity:.5;cursor:default;background:none}
+.mi .ext{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--tx3)}
+
+/* a switch, not a button — the state has to read at a glance */
+.switch{display:inline-flex;align-items:center;gap:8px;font-family:var(--font);font-size:11px;
+        font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);
+        background:none;border:0;padding:0;cursor:pointer}
+.switch .sw{position:relative;width:30px;height:17px;border-radius:99px;background:#242424;
+            border:1px solid var(--line);transition:background .15s,border-color .15s}
+.switch .sw::after{content:'';position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:99px;
+                   background:#6a6a6a;transition:transform .15s,background .15s}
+.switch:hover{color:var(--tx2)}
+.switch.on{color:var(--accent)}
+.switch.on .sw{background:#2b4570;border-color:#43689f}
+.switch.on .sw::after{transform:translateX(13px);background:#dbe8ff}
+.switch:focus-visible{outline:2px solid #777;outline-offset:3px;border-radius:4px}
 
 .imgstrip{display:flex;align-items:center;gap:8px;padding:7px 18px;border-bottom:1px solid var(--line);background:var(--panel);flex:none;overflow-x:auto;min-height:38px}
-.imgstrip .hint{font-size:12px;color:var(--tx3);white-space:nowrap}
+.imgstrip .label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);white-space:nowrap;margin-right:2px;flex:none}
 .chip{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:500;background:var(--panel2);border:1px solid var(--line);border-radius:99px;padding:4px 6px 4px 11px;cursor:pointer;white-space:nowrap;color:var(--tx)}
 .chip:hover{background:#262626}
 .chip img{width:20px;height:20px;object-fit:cover;border-radius:99px}
@@ -55,19 +94,24 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
 .chip.dir .ico{opacity:.75}
 .chip.dir.warn{background:#33291c;border-color:#5a4526;color:#e8cfa4}
 .chip.dir.warn:hover{background:#3d3122}
+.chip.add{padding:4px 11px;color:var(--tx2)}
+.chip.add:hover{color:var(--tx)}
 .imgstrip .sep{width:1px;height:17px;background:var(--line);flex:none}
 
 .main{display:flex;flex:1;min-height:0}
 .pane-editor{width:44%;min-width:340px;display:flex;flex-direction:column;border-right:1px solid var(--line)}
-.pane-editor .phead, .pane-preview .phead{flex:none;display:flex;align-items:center;gap:10px;font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--tx3);padding:9px 18px;border-bottom:1px solid var(--line);text-transform:uppercase}
+.pane-editor .phead, .pane-preview .phead{flex:none;display:flex;align-items:center;gap:10px;height:37px;font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--tx3);padding:0 18px;border-bottom:1px solid var(--line);text-transform:uppercase}
 .phead .now{color:var(--accent);letter-spacing:.02em}
 #editor{flex:1;width:100%;resize:none;border:0;outline:none;background:var(--bg);color:#d6d6d6;font-family:var(--mono);font-size:13.5px;line-height:1.75;padding:18px 20px;white-space:pre-wrap;word-wrap:break-word;overflow:auto;tab-size:4}
 #editor::selection{background:#3a3a3a}
-.pane-preview{flex:1;display:flex;flex-direction:column;min-width:0;background:#141414}
+/* the canvas is lifted off black so a black slide still has an edge */
+.pane-preview{flex:1;display:flex;flex-direction:column;min-width:0;background:#1c1c1c}
 #preview{flex:1;overflow-y:auto;padding:26px 30px 60vh;position:relative}
 .pv-item{margin:0 auto 8px;max-width:1180px;cursor:pointer}
-.pv-label{font-size:11.5px;color:var(--tx3);margin:0 2px 6px;text-align:right;transition:color .15s}
-.pv-frame{position:relative;width:100%;border-radius:6px;overflow:hidden;box-shadow:0 10px 34px rgba(0,0,0,.5);background:#000;outline:0 solid transparent;transition:outline-color .18s,outline-width .18s}
+.pv-label{font-size:11.5px;color:var(--tx3);margin:0 2px 6px;text-align:right;transition:color .15s;font-variant-numeric:tabular-nums}
+.pv-frame{position:relative;width:100%;border-radius:6px;overflow:hidden;background:#000;
+          box-shadow:0 0 0 1px rgba(255,255,255,.07), 0 6px 20px rgba(0,0,0,.45);
+          outline:0 solid transparent;transition:outline-color .18s,outline-width .18s}
 .pv-frame .slide{position:absolute;top:0;left:0;transform-origin:top left}
 .pv-item + .pv-item{margin-top:20px}
 .pv-item.active .pv-frame{outline:2px solid var(--accent);outline-offset:3px}
@@ -213,6 +257,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
 #help td:first-child{white-space:nowrap;padding-right:14px;font-family:var(--mono)}
 #help .note{color:var(--tx3);font-size:12.5px;line-height:1.65;margin-top:6px}
 
+/* narrow laptops: the file chip gives up width before anything wraps */
+@media (max-width:1100px){
+  .topbar{gap:6px;padding:10px 12px}
+  .fileinfo .name{max-width:130px}
+  .pane-editor{width:46%;min-width:300px}
+}
+
 /* ---------- Print ---------- */
 #print-root{display:none}
 @media print{
@@ -238,18 +289,23 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
   <div class="topbar">
     <div class="logo">Pp<em>TeX</em></div>
     <span class="ver" id="ver"></span>
-    <div class="fileinfo nofile" id="fileinfo">
+    <div class="fileinfo draft" id="fileinfo">
       <span class="dot"></span><span class="name" id="fileName">Untitled</span><span class="state" id="fileState"></span>
     </div>
+    <div class="grp">
+      <button class="btn" id="btnNew">New</button>
+      <button class="btn" id="btnOpen">Open</button>
+      <button class="btn" id="btnSave">Save</button>
+    </div>
     <div class="spacer"></div>
-    <button class="btn" id="btnNew">New</button>
-    <button class="btn" id="btnOpen">Open</button>
-    <button class="btn" id="btnSave">Save</button>
-    <button class="btn toggle on" id="btnFollow" title="Scroll the preview to the slide the caret is on">Follow caret</button>
-    <button class="btn" id="btnImgs">Add images</button>
-    <button class="btn" id="btnHelp">Syntax</button>
-    <button class="btn" id="btnPptx">PPTX</button>
-    <button class="btn primary" id="btnPdf">PDF</button>
+    <button class="btn icon" id="btnHelp" title="Syntax" aria-label="Syntax">?</button>
+    <div class="menuwrap">
+      <button class="btn" id="btnExport" aria-haspopup="menu" aria-expanded="false">Export<span class="caret">▾</span></button>
+      <div class="menu" id="exportMenu" role="menu">
+        <button class="mi" id="btnPptx" role="menuitem"><span class="lab">PowerPoint</span><span class="ext">.pptx</span></button>
+        <button class="mi" id="btnPdf" role="menuitem"><span class="lab">PDF</span><span class="ext">.pdf</span></button>
+      </div>
+    </div>
     <input type="file" id="fileSrc" accept=".pptex,.txt,.md,text/plain" hidden>
     <input type="file" id="fileImgs" accept="image/*" multiple hidden>
   </div>
@@ -260,7 +316,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
       <textarea id="editor" spellcheck="false"></textarea>
     </div>
     <div class="pane-preview">
-      <div class="phead"><span>PREVIEW</span><span class="spacer"></span><span id="count"></span></div>
+      <div class="phead"><span>PREVIEW</span><span class="spacer"></span>
+        <button class="switch on" id="btnFollow" role="switch" aria-checked="true"
+                title="Keep the slide the caret is on in view">Follow caret<span class="sw"></span></button></div>
       <div id="preview"></div>
     </div>
   </div>
@@ -322,6 +380,7 @@ Body text sits beside the title block.</pre>
   <p>Images are cropped to fill their slot. <b>Double-click</b> one in the preview to set zoom and focal point; the values are recorded after <code>~</code>.</p>
   <pre>!photo.jpg ~ 1.4 38 22 | Caption</pre>
   <p class="note">You will rarely type this by hand. The order is <code>~ zoom focalX focalY</code>.</p>
+  <p class="note">The <b>Images</b> bar under the toolbar holds every picture the deck knows about. <b>+ Add</b> takes them from your computer, dropping them anywhere on the window works too, and <b>clicking a chip</b> writes <code>!filename</code> in at the caret.</p>
 
   <h3>4. Layout</h3>
   <p>Layout is decided by <b>line breaks</b>.</p>
@@ -396,8 +455,8 @@ Cables become tangled, and the experience becomes fragmented.</pre>
   </table>
 
   <h3>Files</h3>
-  <p>Open a <code>.pptex</code> / <code>.txt</code> file with <b>Open</b> and from then on <b>you are editing that file directly.</b> Edits are saved automatically a moment later, and <code>⌘/Ctrl+S</code> saves at once. Dropping a text file onto the window opens it too.</p>
-  <p class="note">With no file open, your work is only kept temporarily in the browser. Editing files in place works in Chromium browsers, and may be blocked when the page is opened over <code>file://</code> — serving it from a local server is safer.</p>
+  <p>Open a <code>.pptex</code> / <code>.txt</code> file with <b>Open</b> and from then on <b>you are editing that file directly.</b> Edits are saved automatically a moment later, and <code>⌘/Ctrl+S</code> saves at once. Dropping a text file onto the window opens it too. The chip beside the logo says which it is — <b>Saved</b> for a file on disk, <b>Browser draft</b> for work kept in this browser under no name.</p>
+  <p class="note">A browser draft is not lost when you close the tab, but it lives in this browser only — <b>Save</b> gives it a real file. Editing files in place works in Chromium browsers, and may be blocked when the page is opened over <code>file://</code> — serving it from a local server is safer.</p>
 
   <h3>Editing</h3>
   <table>
@@ -406,7 +465,13 @@ Cables become tangled, and the experience becomes fragmented.</pre>
     <tr><td>click the preview</td><td>move the caret to that element</td></tr>
     <tr><td>double-click an image</td><td>set zoom &amp; focal point</td></tr>
     <tr><td>drag &amp; drop an image</td><td>fill that slot in the preview</td></tr>
+    <tr><td>click an image chip</td><td>write its name in at the caret</td></tr>
+    <tr><td>Follow caret</td><td>keep the slide you are typing in in view</td></tr>
   </table>
+  <p class="note"><b>Follow caret</b> sits in the preview's own header, since it is the preview's behaviour.</p>
+
+  <h3>Export</h3>
+  <p><b>Export</b> at the top right offers <b>PowerPoint (.pptx)</b> and <b>PDF (.pdf)</b>.</p>
   <p class="note">For PDF, use the print dialog with <b>Destination: Save as PDF</b> and <b>Margins: None</b>. Pages are 16:9 (1280×720), and background colours print <b>whatever the background-graphics setting says</b>.</p>
   <p class="note">PPTX carries the geometry measured in the preview straight across — <b>text becomes text boxes, photos become pictures</b> — so you can keep editing in PowerPoint. If the Freesentation font is not installed, only the letterforms fall back to another font.</p>
 </aside>
@@ -420,7 +485,7 @@ Cables become tangled, and the experience becomes fragmented.</pre>
    The rule is identical at every depth.
    ========================================================= */
 
-const VERSION = '1.1';
+const VERSION = '1.2';
 
 const DEFAULT_SRC = `@footer Your name \\
 2026
@@ -1031,11 +1096,10 @@ function render(){
   SLIDES = doc.slides;
   preview.innerHTML = '';
   printRoot.innerHTML = '';
-  $('#count').textContent = SLIDES.length ? SLIDES.length + ' slides' : '';
 
   if (!SLIDES.length){
     preview.appendChild(el('div','empty-note',
-      'Type on the left and your slides appear here.\nSeparate slides with ---.\nSee "Syntax" at the top right.'));
+      'Type on the left and your slides appear here.\nSeparate slides with ---.\nPress ? at the top right for the syntax.'));
     $('#nowLabel').textContent = '';
     return;
   }
@@ -1043,7 +1107,7 @@ function render(){
   SLIDES.forEach((s, i) => {
     const item = el('div','pv-item');
     item.dataset.idx = i;
-    item.appendChild(el('div','pv-label', (i+1) + ' · ' + s.scale));
+    item.appendChild(el('div','pv-label', String(i + 1)));
     const frame = el('div','pv-frame');
     frame.appendChild(renderSlide(s, true));
     item.appendChild(frame);
@@ -1090,7 +1154,7 @@ function setActive(i){
   if (prev) prev.classList.remove('active');
   const item = preview.children[i];
   if (item && item.classList) item.classList.add('active');
-  $('#nowLabel').textContent = SLIDES.length ? 'slide ' + (i+1) + ' / ' + SLIDES.length : '';
+  $('#nowLabel').textContent = SLIDES.length ? (i+1) + ' / ' + SLIDES.length : '';
 }
 
 function syncFromCursor(fromRender){
@@ -1170,6 +1234,7 @@ editor.addEventListener('keyup', () => syncFromCursor());
 $('#btnFollow').addEventListener('click', e => {
   follow = !follow;
   e.currentTarget.classList.toggle('on', follow);
+  e.currentTarget.setAttribute('aria-checked', String(follow));
   if (follow) syncFromCursor();
 });
 
@@ -1191,27 +1256,25 @@ function dirChip(){
     chip.addEventListener('click', () => attachDir(pendingDir, true));
     return chip;
   } else {
-    chip.appendChild(document.createTextNode('Link image folder'));
+    chip.appendChild(document.createTextNode('Link folder'));
     chip.title = 'Link the folder your deck lives in and images are kept there as files, ready the next time you open it';
   }
   chip.addEventListener('click', linkDir);
   return chip;
 }
 
+/* a compact asset bar: it stands for the deck's image environment, so it stays
+   even when empty. what you can do with it lives in the syntax panel, not here. */
 function refreshStrip(){
   imgstrip.innerHTML = '';
-  if (CAN_DIR){
-    imgstrip.appendChild(dirChip());
-    imgstrip.appendChild(el('span','sep'));
-  }
-  if (!images.size){
-    const h = el('span','hint');
-    h.innerHTML = imgDir
-      ? '<b>' + imgDir.name + '</b> is empty · drop an image on an empty slot in the preview and it is saved here'
-      : 'Drop images <b>straight onto an empty slot</b> in the preview · clicking a chip inserts <b>!filename</b> at the caret';
-    imgstrip.appendChild(h);
-    return;
-  }
+  imgstrip.appendChild(el('span','label','Images'));
+  if (CAN_DIR) imgstrip.appendChild(dirChip());
+  const add = el('button','chip add','+ Add');
+  add.title = 'Add images from your computer';
+  add.addEventListener('click', () => $('#fileImgs').click());
+  imgstrip.appendChild(add);
+  if (!images.size) return;
+  imgstrip.appendChild(el('span','sep'));
   images.forEach((url, name) => {
     const chip = el('button','chip');
     const th = el('img'); th.src = url; chip.appendChild(th);
@@ -1270,10 +1333,12 @@ function insertAtCursor(text){
   touch(); scheduleRender();
 }
 
+let hintTimer = null;
 function flashHint(msg){
-  const s = $('#fileState'); const old = s.textContent;
+  const s = $('#fileState');
   s.textContent = msg;
-  setTimeout(() => { if (s.textContent === msg) s.textContent = old; }, 2200);
+  clearTimeout(hintTimer);
+  hintTimer = setTimeout(() => { if (s.textContent === msg) setFileUI(); }, 2200);
 }
 
 /* =========================================================
@@ -1284,12 +1349,12 @@ const CAN_FS = typeof window.showOpenFilePicker === 'function';
 const TYPES = [{ description:'PpTeX', accept:{ 'text/plain':['.pptex','.txt','.md'] } }];
 let fileHandle = null, dirty = false, saveTimer = null;
 
+/* three states: a draft living in browser storage, a file being written, a file written */
 function setFileUI(){
   const info = $('#fileinfo');
-  info.classList.toggle('nofile', !fileHandle);
-  info.classList.toggle('dirty', dirty && !!fileHandle);
+  info.className = 'fileinfo ' + (!fileHandle ? 'draft' : dirty ? 'saving' : 'saved');
   $('#fileName').textContent = fileHandle ? fileHandle.name : 'Untitled';
-  $('#fileState').textContent = fileHandle ? (dirty ? 'Edited' : 'Saved') : 'No file · kept in the browser';
+  $('#fileState').textContent = fileHandle ? (dirty ? 'Saving…' : 'Saved') : 'Browser draft';
 }
 
 function touch(){
@@ -1321,6 +1386,7 @@ async function saveFile(auto){
     dirty = false; setFileUI();
     if (!auto) flashHint('Saved');
   } catch(err){
+    $('#fileinfo').classList.add('warn');
     $('#fileState').textContent = 'Save failed: ' + err.message;
   }
 }
@@ -1376,10 +1442,18 @@ $('#fileSrc').addEventListener('change', e => {          /* browsers without the
   e.target.value = '';
 });
 
-$('#btnImgs').addEventListener('click', () => $('#fileImgs').click());
 $('#fileImgs').addEventListener('change', e => { addImages([...e.target.files]); e.target.value = ''; });
 
+const exportMenu = $('#exportMenu');
+function setMenu(open){
+  exportMenu.classList.toggle('open', open);
+  $('#btnExport').setAttribute('aria-expanded', String(open));
+}
+$('#btnExport').addEventListener('click', e => { e.stopPropagation(); setMenu(!exportMenu.classList.contains('open')); });
+document.addEventListener('click', e => { if (!e.target.closest('.menuwrap')) setMenu(false); });
+
 $('#btnPdf').addEventListener('click', async () => {
+  setMenu(false);
   render();
   try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch(_){}
   await Promise.all([...printRoot.querySelectorAll('img')]
@@ -1426,7 +1500,7 @@ window.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's' && document.activeElement !== editor){
     e.preventDefault(); saveFile(false);
   }
-  if (e.key === 'Escape') closeCrop();
+  if (e.key === 'Escape'){ closeCrop(); setMenu(false); }
 });
 window.addEventListener('beforeunload', e => {
   if (dirty && fileHandle){ e.preventDefault(); e.returnValue = ''; }
@@ -2096,10 +2170,12 @@ function deckBaseName(){
 }
 
 async function exportPptx(){
-  const btn = $('#btnPptx');
+  const btn = $('#btnPptx'), lab = btn.querySelector('.lab');
+  setMenu(false);
   btn.disabled = true;
-  const label = btn.textContent;
-  btn.textContent = 'Building…';
+  const label = lab.textContent;
+  lab.textContent = 'Building…';
+  flashHint('Building the PowerPoint file…');
   try {
     const blob = await buildPptx();
     const name = deckBaseName() + '.pptx';
@@ -2120,7 +2196,7 @@ async function exportPptx(){
   } catch(err){
     flashHint('PPTX export failed: ' + err.message);
   } finally {
-    btn.disabled = false; btn.textContent = label;
+    btn.disabled = false; lab.textContent = label;
   }
 }
 

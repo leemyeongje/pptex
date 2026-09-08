@@ -7,7 +7,7 @@ visual styling is handled by the renderer.
 **→ [leemyeongje.github.io/pptex](https://leemyeongje.github.io/pptex/)**
 
 `index.html` is the reference renderer and editor — one self-contained file, no build
-step. Current version: **1.1** — see [CHANGELOG.md](CHANGELOG.md). Use the link above,
+step. Current version: **1.2** — see [CHANGELOG.md](CHANGELOG.md). Use the link above,
 or run it locally:
 
 ```
@@ -201,11 +201,19 @@ The reference renderer doubles as an editor.
 | Click in the preview | Move the cursor to that element |
 | Double-click an image | Set zoom and focal point |
 | Drag an image onto a slot | Fill it in, writing the filename into the source |
+| Click an image chip | Write its filename in at the caret |
+
+**Follow caret** — keeping the slide you are typing in in view — is a switch in the
+preview pane's own header. **?** at the top right opens the syntax panel, and **Export**
+beside it writes the deck out as PowerPoint or PDF.
 
 ### Image folder
 
-Images can live next to the deck instead of only in the browser. Click the folder chip
-in the image strip and pick the folder your `.pptex` / `.txt` file is in:
+Images can live next to the deck instead of only in the browser. The **Images** bar
+under the toolbar is the deck's image environment: **Link folder** pairs it with a
+folder on disk, **+ Add** takes pictures from your computer, and each chip inserts its
+filename at the caret. Click the folder chip and pick the folder your `.pptex` / `.txt`
+file is in:
 
 - If that folder holds an image folder — `images`, `img`, `assets`, `media`, … — its
   contents are loaded on open, so every `!name.jpg` in the source previews right away.
@@ -225,18 +233,18 @@ Chromium only, and needs `http://localhost` or HTTPS.
 ### Files
 
 Opening a `.pptex` / `.txt` file edits **that file in place**, autosaving shortly after
-each change. Dropping a text file onto the window opens it. Without a file open, work
-is kept in browser storage only — and a stored draft that is still an untouched sample
-is replaced by the current one, so a new sample is never shadowed by an old copy. The
+each change; the chip beside the logo reads `Saving…` and then `Saved`. Dropping a text
+file onto the window opens it. Without a file open the chip reads **Browser draft**:
+the work is kept in browser storage under no name — it survives closing the tab, and
+**Save** gives it a real file. A stored draft that is still an untouched sample is
+replaced by the current one, so a new sample is never shadowed by an old copy. The
 syntax panel has a **Load the sample deck** button to load the sample deck at any time.
 
-The preview follows the caret: the slide your cursor is in stays in view as you type.
-
-**PDF** — the PDF button exports one 16:9 page (1280×720) per slide, at full bleed with
+**PDF** — **Export › PDF** writes one 16:9 page (1280×720) per slide, at full bleed with
 no trailing blank page. Colours are forced with `print-color-adjust: exact`, so the
 browser's "Background graphics" setting does not matter; set margins to none.
 
-**PPTX** — the PPTX button writes a PowerPoint file, one 16:9 slide per slide. It is not
+**PPTX** — **Export › PowerPoint** writes a `.pptx`, one 16:9 slide per slide. It is not
 a picture of the deck: each slide is laid out off-screen at full 1280×720 size and the
 measured positions become real PowerPoint shapes, so text stays text in editable boxes
 and photos stay photos, cropped by `srcRect` to match the `~` zoom and focal point.

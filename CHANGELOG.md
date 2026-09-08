@@ -3,6 +3,29 @@
 Versions are marked in `index.html` (`VERSION`), shown next to the logo in the editor,
 and tagged in git.
 
+## 1.2 — 2026-09-08
+
+A pass over the editor's own interface. The language and everything the renderer does
+are untouched.
+
+- **The toolbar is grouped.** `New` `Open` `Save` now sit next to the file they act on,
+  on the left beside the logo. On the right there is a compact `?` for the syntax panel
+  and one **Export** menu holding **PowerPoint (.pptx)** and **PDF (.pdf)** — the same
+  two exports as before, at the same level.
+- **`Follow caret` moved into the preview's own header**, where it belongs, and became a
+  switch whose on/off state reads at a glance.
+- **The image strip is a compact asset bar.** `Images`, the folder chip, `+ Add`, then
+  the pictures. The permanent line of instructions is gone; what you can do with images
+  is written in the syntax panel instead. The strip still stays put when it is empty —
+  it stands for the deck's images, not for a picker.
+- **The file state says what it means.** With no file open the chip reads
+  **Browser draft** rather than sounding like a warning; with a file open it reads
+  `Saving…` and then `Saved`.
+- **The preview canvas sits a shade lighter than the slides**, so a black slide keeps a
+  clear edge, with a hairline and a restrained shadow instead of a heavy border.
+- **The `1 · cover` labels above each slide are gone.** Only the slide number is left —
+  which scale the renderer inferred was never the reader's business.
+
 ## 1.1 — 2026-09-07
 
 - **`~` works on `@bg`.** A background photo takes a zoom and focal point like any other
