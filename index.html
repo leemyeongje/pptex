@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PpTex — presentations written as text</title>
+<title>PpTeX — presentations written as text</title>
 <style>
 /* ---------- Freesentation ---------- */
 @font-face{font-family:'Freesentation';font-weight:400;font-style:normal;src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2404@1.0/Freesentation-4Regular.woff2') format('woff2');font-display:swap}
@@ -236,7 +236,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
 
 <div class="app">
   <div class="topbar">
-    <div class="logo">Pp<em>Tex</em></div>
+    <div class="logo">Pp<em>TeX</em></div>
     <span class="ver" id="ver"></span>
     <div class="fileinfo nofile" id="fileinfo">
       <span class="dot"></span><span class="name" id="fileName">Untitled</span><span class="state" id="fileState"></span>
@@ -286,7 +286,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--tx);overflow:hidde
 
 <aside id="help">
   <button class="close" id="btnHelpClose" aria-label="Close">×</button>
-  <h2>PpTex syntax</h2>
+  <h2>PpTeX syntax</h2>
   <p>You write only what is on the slide and <b>how the pieces sit next to each other</b>. Colour, size and spacing are the renderer's business.</p>
   <p style="margin-top:12px"><button class="btn" id="btnSample">Load the sample deck</button></p>
 
@@ -374,7 +374,7 @@ Cables become tangled, and the experience becomes fragmented.</pre>
 @footer Your name \
 2026</pre>
   <p><code>!</code> still means the same thing. <code>!backdrop.jpg</code> is placed as an element; <code>@bg !backdrop.jpg</code> becomes the slide background. <code>~</code> works here too — <b>double-click</b> the background where no element covers it to set its zoom and focal point.</p>
-  <p class="note">PpTex has no low-level style attributes such as <code>@color</code> <code>@size</code> <code>@margin</code> <code>@align</code>.</p>
+  <p class="note">PpTeX has no low-level style attributes such as <code>@color</code> <code>@size</code> <code>@margin</code> <code>@align</code>.</p>
 
   <h3>Syntax at a glance</h3>
   <table>
@@ -415,7 +415,7 @@ Cables become tangled, and the experience becomes fragmented.</pre>
 
 <script>
 /* =========================================================
-   PpTex — plain text -> slides
+   PpTeX — plain text -> slides
    newline = row, blank line = col, [ ] = bind several elements into one.
    The rule is identical at every depth.
    ========================================================= */
@@ -488,7 +488,7 @@ A backslash breaks a line inside the same block.
 
 ---
 
-@footer Made with PpTex ${VERSION}
+@footer Made with PpTeX ${VERSION}
 # Thank you
 `;
 
@@ -526,6 +526,7 @@ const SAMPLE_FINGERPRINTS = new Set([
   '1l0vssg-1087',   // the first sample (taken from a real deck)
   '1le9cue-769',    // before 1.0 (no version line on the last slide)
   '1v49jjt-791',    // 1.0 (the closing slide repeated 'Thank you' in its footer)
+  '1kw7bed-779',    // 1.1 (the footer still read 'Made with PpTex')
 ]);
 
 function fingerprint(t){
@@ -536,7 +537,7 @@ function fingerprint(t){
 }
 
 /* the sample's version line changes with each release, so drop it before fingerprinting */
-function unversion(t){ return String(t).replace(/Made with PpTex [\d.]+/g, 'Made with PpTex'); }
+function unversion(t){ return String(t).replace(/Made with PpTeX [\d.]+/g, 'Made with PpTeX'); }
 
 function isSample(t){
   return fingerprint(unversion(t)) === fingerprint(unversion(DEFAULT_SRC)) ||
@@ -679,7 +680,7 @@ function parseSlide(rawLines, from){
       if (name === 'bg')     { const b = parseImg(arg.replace(/^!\s*/, '')); b.line = it.line;
                                s.bg = b.name ? b : null; continue; }
       if (name === 'footer') { s.footer = arg; continue; }
-      continue;                                   // no other @ exists in PpTex
+      continue;                                   // no other @ exists in PpTeX
     }
     items.push(it);
   }
@@ -1280,7 +1281,7 @@ function flashHint(msg){
    ========================================================= */
 
 const CAN_FS = typeof window.showOpenFilePicker === 'function';
-const TYPES = [{ description:'PpTex', accept:{ 'text/plain':['.pptex','.txt','.md'] } }];
+const TYPES = [{ description:'PpTeX', accept:{ 'text/plain':['.pptex','.txt','.md'] } }];
 let fileHandle = null, dirty = false, saveTimer = null;
 
 function setFileUI(){
@@ -1937,10 +1938,10 @@ function themeXml(){
   const line = '<a:ln w="9525" cap="flat" cmpd="sng" algn="ctr"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill>' +
                '<a:prstDash val="solid"/></a:ln>';
   return XML +
-    '<a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="PpTex">' +
-    `<a:themeElements><a:clrScheme name="PpTex">${scheme}</a:clrScheme>` +
-    `<a:fontScheme name="PpTex"><a:majorFont>${face}</a:majorFont><a:minorFont>${face}</a:minorFont></a:fontScheme>` +
-    `<a:fmtScheme name="PpTex"><a:fillStyleLst>${fill}${fill}${fill}</a:fillStyleLst>` +
+    '<a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="PpTeX">' +
+    `<a:themeElements><a:clrScheme name="PpTeX">${scheme}</a:clrScheme>` +
+    `<a:fontScheme name="PpTeX"><a:majorFont>${face}</a:majorFont><a:minorFont>${face}</a:minorFont></a:fontScheme>` +
+    `<a:fmtScheme name="PpTeX"><a:fillStyleLst>${fill}${fill}${fill}</a:fillStyleLst>` +
     `<a:lnStyleLst>${line}${line}${line}</a:lnStyleLst>` +
     '<a:effectStyleLst><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle>' +
     '<a:effectStyle><a:effectLst/></a:effectStyle></a:effectStyleLst>' +

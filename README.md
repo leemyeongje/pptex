@@ -1,6 +1,6 @@
-# PpTex
+# PpTeX
 
-PpTex is a minimal markup language for rapidly creating presentations in a consistent
+PpTeX is a minimal markup language for rapidly creating presentations in a consistent
 visual style. It describes **content, hierarchy, and spatial relationships**, while
 visual styling is handled by the renderer.
 
@@ -179,7 +179,7 @@ any other text.
 A modifier is enough to make a slide: `@footer` on its own gives an otherwise empty
 slide with the footer in its usual place.
 
-PpTex does not expose low-level styling properties such as `@color`, `@size`,
+PpTeX does not expose low-level styling properties such as `@color`, `@size`,
 `@margin`, or `@align`. These are determined by the renderer.
 
 ## What the renderer decides

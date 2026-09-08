@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-PpTex is a markup language for presentations plus its reference renderer/editor. The
+PpTeX is a markup language for presentations plus its reference renderer/editor. The
 whole app is `index.html` — one self-contained file, ~2100 lines, no build step, no
 dependencies, no test suite. `README.md` is the language specification; keep it in sync
 whenever syntax or renderer behaviour changes.
@@ -76,7 +76,7 @@ find them with `grep -n "====" index.html`.
 `VERSION` in `index.html` is the single source (shown next to the logo, and written into
 the sample deck's closing footer). Bumping it means: edit `VERSION`, add a `CHANGELOG.md`
 entry, update the version line in `README.md`, and tag the commit (`v1.0`). `isSample`
-strips `Made with PpTex <n>` before fingerprinting, so a version bump alone does not need
+strips `Made with PpTeX <n>` before fingerprinting, so a version bump alone does not need
 a new `SAMPLE_FINGERPRINTS` entry — changing the deck's text still does.
 
 ## Persistence
