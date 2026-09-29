@@ -60,7 +60,9 @@ Body text sits beside the title block.
 Adjacent `^` / `#` / `##` lines coalesce into a single title block. The title keeps
 exactly the same position and size whether or not a caption is present.
 
-Adjacent `1.` `2.` `3.` lines coalesce into a single numbered list.
+Adjacent `1.` `2.` `3.` lines coalesce into a single numbered list. Each item shows the number you
+typed, so a list that picks up after a slide break can start at `4.` — the renderer never
+renumbers.
 
 ### 3. Images
 

@@ -367,7 +367,7 @@ Body text sits beside the title block.</pre>
     <tr><td>(none)</td><td>body text</td></tr>
     <tr><td>1.</td><td>numbered list</td></tr>
   </table>
-  <p class="note">Caption or no caption, <b>the title keeps exactly the same place and size.</b> Adjacent <code>1. 2. 3.</code> lines are gathered into one list.</p>
+  <p class="note">Caption or no caption, <b>the title keeps exactly the same place and size.</b> Adjacent <code>1. 2. 3.</code> lines are gathered into one list, numbered as you typed them.</p>
 
   <h3>3. Images</h3>
   <pre>!photo.jpg
@@ -650,7 +650,7 @@ const RE = {
   caption : /^\^\s*(.*)$/,
   h2      : /^##\s*(.*)$/,
   h1      : /^#\s*(.*)$/,
-  li      : /^\d+[.)]\s+(.*)$/,
+  li      : /^(\d+)[.)]\s+(.*)$/,
   img     : /^!(.*)$/,
   dir     : /^@(\w+)\s*([\s\S]*)$/
 };
@@ -716,7 +716,7 @@ function parseCell(text){
   if (m = text.match(RE.caption)) return { k:'title', caption:m[1].trim(), title:null, subtitle:null };
   if (m = text.match(RE.h2))      return { k:'title', caption:null, title:null, subtitle:m[1].trim() };
   if (m = text.match(RE.h1))      return { k:'title', caption:null, title:m[1].trim(), subtitle:null };
-  if (m = text.match(RE.li))      return { k:'list', items:[m[1].trim()] };
+  if (m = text.match(RE.li))      return { k:'list', items:[m[2].trim()], nos:[+m[1]] };
   if (m = text.match(RE.img))     return parseImg(m[1]);
   return { k:'text', lines:text.split('\n') };
 }
@@ -730,7 +730,7 @@ function mergeOrPush(row, c){
     if (c.title    != null && !open.title && !open.subtitle){ open.title    = c.title;    return; }
     if (c.subtitle != null && !open.subtitle){ open.subtitle = c.subtitle; return; }
   }
-  if (open && open.k === 'list' && c.k === 'list'){ open.items.push(...c.items); return; }
+  if (open && open.k === 'list' && c.k === 'list'){ open.items.push(...c.items); open.nos.push(...c.nos); return; }
   row.children.push(c);
 }
 
@@ -870,7 +870,7 @@ function renderCell(c, live){
     n.style.fontSize = size.toFixed(1) + 'px';
     c.items.forEach((t, i) => {
       const row = el('div','item');
-      row.appendChild(el('span','no', String(i + 1).padStart(2, '0')));
+      row.appendChild(el('span','no', String(c.nos[i]).padStart(2, '0')));   /* the number as typed, not the position */
       row.appendChild(el('span', null, t));
       n.appendChild(row);
     });
