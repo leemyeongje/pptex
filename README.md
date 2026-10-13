@@ -18,6 +18,16 @@ Open it over `http://localhost` or the HTTPS link rather than `file://` — edit
 in place needs a secure context. Chromium browsers only for the file-editing and
 squircle parts; everything else renders anywhere.
 
+## macOS app
+
+PpTeX also has a native Mac app with document windows, a slide sidebar, a native
+source editor, autosave, and PowerPoint/PDF export. It runs locally without a server.
+
+It lives in its own repository, [pptex-mac](https://github.com/leemyeongje/pptex-mac),
+and bundles this repository's `index.html`. Requires macOS 14 or later and Xcode
+Command Line Tools; see its README for build steps, native workflows, verification, and
+distribution notes.
+
 ## Syntax
 
 | | |
